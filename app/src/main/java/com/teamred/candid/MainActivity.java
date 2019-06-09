@@ -4,13 +4,16 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.FrameLayout;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.vision.Frame;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOptions;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
@@ -21,8 +24,11 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
+
+    Camera camera;
+    FrameLayout frameLayout;
+    ShowCamera showCamera;
 
     public Bitmap getBitmapFromAssets(String fileName)  {
         AssetManager assetManager = this.getAssets();
@@ -41,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        frameLayout =(FrameLayout) findViewById(R.id.frameLayout);
+
+        //open the camera
+        camera = Camera.open();
+        showCamera = new ShowCamera(this,camera);
+        frameLayout.addView(showCamera);
 
         // High-accuracy landmark detection and face classification
 
