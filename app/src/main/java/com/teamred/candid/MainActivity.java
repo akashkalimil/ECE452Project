@@ -48,13 +48,13 @@ public class MainActivity extends AppCompatActivity {
         FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
-                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
-                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
+//                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+//                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
                         .setMinFaceSize(0.1f) // face size to detect (relative to size of image)
                         .build();
 
-        Bitmap bitmap = getBitmapFromAssets("single_smile/1.jpg");
+        Bitmap bitmap = getBitmapFromAssets("2.jpg");
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
 
         FirebaseVisionFaceDetector detector = FirebaseVision.getInstance()
