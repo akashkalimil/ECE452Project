@@ -12,6 +12,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOptions;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
@@ -23,19 +24,17 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static Bitmap getBitmapFromAsset(Context context, String filePath) {
-        AssetManager assetManager = context.getAssets();
+    public Bitmap getBitmapFromAssets(String fileName)  {
+        AssetManager assetManager = this.getAssets();
 
-        InputStream istr;
-        Bitmap bitmap = null;
+        InputStream istr = null;
         try {
-            istr = assetManager.open(filePath);
-            bitmap = BitmapFactory.decodeStream(istr);
+            istr = assetManager.open(fileName);
         } catch (IOException e) {
-            // handle exception
+            return null;
         }
 
-        return bitmap;
+        return BitmapFactory.decodeStream(istr);
     }
 
     @Override
@@ -46,21 +45,16 @@ public class MainActivity extends AppCompatActivity {
         // High-accuracy landmark detection and face classification
 
 
-        FirebaseVisionFaceDetectorOptions highAccuracyOpts =
+        FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
                         .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
                         .setMinFaceSize(0.1f) // face size to detect (relative to size of image)
                         .build();
 
-// Real-time contour detection of multiple faces
-        FirebaseVisionFaceDetectorOptions options =
-                new FirebaseVisionFaceDetectorOptions.Builder()
-                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                        .build();
-
-        Bitmap bitmap = getBitmapFromAsset(this, "single_smile/1.png");
+        Bitmap bitmap = getBitmapFromAssets("single_smile/1.jpg");
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
 
         FirebaseVisionFaceDetector detector = FirebaseVision.getInstance()
