@@ -9,4 +9,23 @@
         android:layout_height="match_parent"
         android:keepScreenOn="true" />
 
+    <FrameLayout
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#7F000000">
+
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:rotation="90"
+            android:text="Start!"
+            android:textColor="@android:color/white"
+            android:textSize="24dp"
+            android:textStyle="bold" />
+    </FrameLayout>
 </FrameLayout>
