@@ -6,7 +6,6 @@ import android.util.Log;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -18,7 +17,7 @@ import io.reactivex.Maybe;
 public class SessionManager {
 
     private static final float SMILING_THRESHOLD = .7f;
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH_mm_ss_yy_MM_dd");
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy");
 
     enum Mode {
         PARTY,
@@ -52,7 +51,7 @@ public class SessionManager {
         if (!shouldSaveMoment(moment))
             return Maybe.empty();
 
-        String filename = String.format("%s.jpg", saveCount++);
+        String filename = String.format("%s.png", saveCount++);
         File file = new File(sessionDirectory, filename);
         try {
             Log.d("SessionManager", "saving image!");

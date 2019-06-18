@@ -9,6 +9,7 @@ import android.widget.Button;
 import com.otaliastudios.cameraview.CameraView;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
 
         cameraView = findViewById(R.id.camera);
@@ -36,22 +38,29 @@ public class MainActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(SessionManager.Mode.SELFIE, getFilesDir());
 
-        start.setOnClickListener(v -> overlay.animate()
-                .setStartDelay(200)
-                .alpha(0)
-                .withEndAction(() -> {
-                    overlay.setVisibility(View.GONE);
-                    start.setVisibility(View.GONE);
-                    end.setVisibility(View.VISIBLE);
-                    end.animate().alpha(1);
-                    startCamera();
-                    sessionManager.start();
-                }));
+        start.setOnClickListener(v -> {
+            overlay.animate()
+                    .setStartDelay(200)
+                    .alpha(0)
+                    .withEndAction(() -> {
+                        overlay.setVisibility(View.GONE);
+                        start.setVisibility(View.GONE);
+                        end.setVisibility(View.VISIBLE);
+                        end.animate().alpha(1);
+                        sessionManager.start();
+                        startCamera();
+                    });
+        });
 
         end.setOnClickListener(v -> {
             // Open new activity with collection of photos from this session
             File sessionDir = sessionManager.end();
             startActivity(ViewSessionActivity.newIntent(this, sessionDir));
+
+            // Make the start button visible again
+            start.setVisibility(View.VISIBLE);
+            overlay.setVisibility(View.VISIBLE);
+            overlay.animate().alpha(1);
         });
     }
 
@@ -61,10 +70,9 @@ public class MainActivity extends AppCompatActivity {
 
         cameraView.addFrameProcessor(imageProcessor);
 
-        // TODO: rate limit the image stream
-        //      (if we save an image, wait for a few secs before listening again)
         dispose = imageProcessor
                 .imageStream()
+                .sample(3, TimeUnit.SECONDS) // imageStream continuously releases frames so sample it down
                 .flatMapMaybe(faceDetector::detectMomentInImage)
                 .flatMapMaybe(sessionManager::saveOrDispose)
                 .subscribeOn(Schedulers.newThread())
@@ -73,8 +81,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop");
         if (dispose != null && !dispose.isDisposed()) {
             dispose.dispose();
         }
