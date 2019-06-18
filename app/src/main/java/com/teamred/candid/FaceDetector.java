@@ -30,15 +30,12 @@ class FaceDetector {
         return Maybe.create(emitter -> {
             try {
                 List<FirebaseVisionFace> faces = Tasks.await(detector.detectInImage(image));
-                emitter.onSuccess(createCandidMoment(faces));
+                CandidMoment moment = new CandidMoment(image.getBitmap(), faces);
+                emitter.onSuccess(moment);
             } catch (Exception e) {
                 emitter.onError(e);
             }
         });
-    }
-
-    private CandidMoment createCandidMoment(List<FirebaseVisionFace> faces) {
-        return new CandidMoment(System.currentTimeMillis(), faces);
     }
 
 }

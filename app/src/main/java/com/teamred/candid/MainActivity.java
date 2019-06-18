@@ -8,6 +8,8 @@ import android.widget.Button;
 
 import com.otaliastudios.cameraview.CameraView;
 
+import java.io.File;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -18,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Disposable dispose;
     private CameraView cameraView;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +31,10 @@ public class MainActivity extends AppCompatActivity {
         cameraView.setLifecycleOwner(this);
 
         Button start = findViewById(R.id.start_button);
+        Button end = findViewById(R.id.end_button);
         View overlay = findViewById(R.id.overlay);
+
+        sessionManager = new SessionManager(SessionManager.Mode.SELFIE, getFilesDir());
 
         start.setOnClickListener(v -> overlay.animate()
                 .setStartDelay(200)
@@ -36,8 +42,17 @@ public class MainActivity extends AppCompatActivity {
                 .withEndAction(() -> {
                     overlay.setVisibility(View.GONE);
                     start.setVisibility(View.GONE);
+                    end.setVisibility(View.VISIBLE);
+                    end.animate().alpha(1);
                     startCamera();
+                    sessionManager.start();
                 }));
+
+        end.setOnClickListener(v -> {
+            // Open new activity with collection of photos from this session
+            File sessionDir = sessionManager.end();
+            startActivity(ViewSessionActivity.newIntent(this, sessionDir));
+        });
     }
 
     private void startCamera() {
@@ -46,14 +61,15 @@ public class MainActivity extends AppCompatActivity {
 
         cameraView.addFrameProcessor(imageProcessor);
 
+        // TODO: rate limit the image stream
+        //      (if we save an image, wait for a few secs before listening again)
         dispose = imageProcessor
                 .imageStream()
                 .flatMapMaybe(faceDetector::detectMomentInImage)
+                .flatMapMaybe(sessionManager::saveOrDispose)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(candidMoment -> {
-                    Log.d(TAG, "Detected candid moment! " + candidMoment);
-                });
+                .subscribe(candidMoment -> Log.d(TAG, "Detected candid moment! " + candidMoment));
     }
 
     @Override
