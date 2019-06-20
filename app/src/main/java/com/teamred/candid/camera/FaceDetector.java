@@ -1,4 +1,6 @@
-package com.teamred.candid;
+package com.teamred.candid.camera;
+
+import android.graphics.Bitmap;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -6,12 +8,23 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+import com.teamred.candid.data.Detector;
 
 import java.util.List;
 
 import io.reactivex.Maybe;
 
-class FaceDetector {
+public class FaceDetector implements Detector<FirebaseVisionImage, FaceDetector.Result> {
+
+    public static class Result {
+        public final Bitmap image;
+        public final List<FirebaseVisionFace> faces;
+
+        Result(Bitmap image, List<FirebaseVisionFace> faces) {
+            this.image = image;
+            this.faces = faces;
+        }
+    }
 
     private static final FirebaseVisionFaceDetectorOptions DETECTOR_OPTIONS =
             new FirebaseVisionFaceDetectorOptions.Builder()
@@ -22,20 +35,19 @@ class FaceDetector {
 
     private final FirebaseVisionFaceDetector detector;
 
-    FaceDetector() {
+    public FaceDetector() {
         detector = FirebaseVision.getInstance().getVisionFaceDetector(DETECTOR_OPTIONS);
     }
 
-    Maybe<CandidMoment> detectMomentInImage(FirebaseVisionImage image) {
+    @Override
+    public Maybe<Result> detect(FirebaseVisionImage image) {
         return Maybe.create(emitter -> {
             try {
                 List<FirebaseVisionFace> faces = Tasks.await(detector.detectInImage(image));
-                CandidMoment moment = new CandidMoment(image.getBitmap(), faces);
-                emitter.onSuccess(moment);
+                emitter.onSuccess(new Result(image.getBitmap(), faces));
             } catch (Exception e) {
                 emitter.onError(e);
             }
         });
     }
-
 }
