@@ -1,9 +1,10 @@
-package com.teamred.candid;
+package com.teamred.candid.data;
 
 import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.teamred.candid.model.Moment;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,13 +14,14 @@ import java.util.Date;
 import java.util.List;
 
 import io.reactivex.Maybe;
+import io.reactivex.Single;
 
 public class SessionManager {
 
     private static final float SMILING_THRESHOLD = .7f;
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy");
 
-    enum Mode {
+    public enum Mode {
         PARTY,
         SELFIE
     }
@@ -30,27 +32,24 @@ public class SessionManager {
     private int saveCount;
     private File sessionDirectory;
 
-    SessionManager(Mode mode, File fileDirectory) {
+    public SessionManager(Mode mode, File fileDirectory) {
         this.mode = mode;
         this.rootDirectory = fileDirectory;
     }
 
-    void start() {
+    public void start() {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
     }
 
     // Returns directory containing images taken during this session
-    File end() {
+    public File end() {
         saveCount = 0;
         return sessionDirectory;
     }
 
-    Maybe<CandidMoment> saveOrDispose(CandidMoment moment) {
-        if (!shouldSaveMoment(moment))
-            return Maybe.empty();
-
+    public Single<File> saveMoment(Moment moment) {
         String filename = String.format("%s.png", saveCount++);
         File file = new File(sessionDirectory, filename);
         try {
@@ -59,14 +58,13 @@ public class SessionManager {
             moment.getBitmap().compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();
             out.close();
-            return Maybe.just(moment);
+            return Single.just(file);
         } catch (Exception e) {
-            e.printStackTrace();
-            return Maybe.empty();
+            return Single.error(e);
         }
     }
 
-    private boolean shouldSaveMoment(CandidMoment moment) {
+    public boolean shouldSaveMoment(Moment moment) {
         if (!moment.hasFaces()) return false;
 
         // Return true if we're in selfie mode and there's one person smiling

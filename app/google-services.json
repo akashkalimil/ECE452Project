@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1006666980865-06cn3tdjb6pu8libfetv7k3filpff5gs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.teamred.candid",
+            "certificate_hash": "9a716bd24bd59ed30e285e1e25a9be0e934741b0"
+          }
+        },
+        {
           "client_id": "1006666980865-mo2kjdf19rd1e7iolnp62v3hh3ouprk7.apps.googleusercontent.com",
           "client_type": 3
         }

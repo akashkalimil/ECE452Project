@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/Users/priyesh/Desktop/debug.keystore')
+            storePassword 'candid123'
+            keyAlias = 'teamred'
+            keyPassword 'candid123'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.teamred.candid"
@@ -39,6 +47,13 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'com.otaliastudios:cameraview:1.6.1'
+
+    // Google Drive
+    implementation 'com.google.firebase:firebase-auth:17.0.0'
+    implementation 'com.google.android.gms:play-services-drive:16.1.0'
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.api-client:google-api-client-android:1.22.0'
+    implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
 
     // Testing
     testImplementation 'junit:junit:4.12'

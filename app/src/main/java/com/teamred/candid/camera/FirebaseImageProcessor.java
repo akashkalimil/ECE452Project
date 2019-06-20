@@ -1,4 +1,4 @@
-package com.teamred.candid;
+package com.teamred.candid.camera;
 
 import android.support.annotation.NonNull;
 
@@ -21,12 +21,12 @@ public class FirebaseImageProcessor implements FrameProcessor {
     // Cache metadata objects for re-use
     private final Map<String, FirebaseVisionImageMetadata> metadataCache;
 
-    FirebaseImageProcessor() {
+    public FirebaseImageProcessor() {
         this.metadataCache = new HashMap<>();
         this.imageSubject = PublishSubject.create();
     }
 
-    Observable<FirebaseVisionImage> imageStream() {
+    public Observable<FirebaseVisionImage> imageStream() {
         return imageSubject;
     }
 
