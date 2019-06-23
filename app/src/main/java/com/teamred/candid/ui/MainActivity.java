@@ -19,6 +19,7 @@ import com.teamred.candid.data.DetectorCoordinator;
 import com.teamred.candid.data.SessionManager;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         dispose = coordinator.detectedMomentStream()
                 .doOnNext(s -> Log.d(TAG, s.toString()))
                 .filter(sessionManager::shouldSaveMoment)
+                .throttleFirst(3, TimeUnit.SECONDS) // After capturing, dont save anything for 3 seconds
                 .flatMapSingle(sessionManager::saveMoment)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

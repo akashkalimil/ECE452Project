@@ -11,6 +11,8 @@ import io.reactivex.Observable;
 
 public class DetectorCoordinator {
 
+    private static final long SAMPLE_PERIOD_S = 1;
+
     private final Observable<FirebaseVisionImage> imageStream;
     private final Observable<Double> audioStream;
 
@@ -42,7 +44,7 @@ public class DetectorCoordinator {
     private static <A, B> Observable<B> createDetectionPipe(
             Observable<A> source, Detector<A, B> detector) {
         return source
-                .sample(2, TimeUnit.SECONDS)
+                .sample(SAMPLE_PERIOD_S, TimeUnit.SECONDS)
                 .flatMapMaybe(detector::detect);
     }
 }
