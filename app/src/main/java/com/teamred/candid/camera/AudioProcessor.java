@@ -14,11 +14,11 @@ public class AudioProcessor {
     private MediaRecorder recorder;
 
     public Observable<Double> audioStream() {
-        recorderStart();
+//        recorderStart();
 
         return Observable
                 .interval(SAMPLE_PERIOD_MS, TimeUnit.MILLISECONDS)
-                .map(i -> recorderGetLevel());
+                .map(i -> 0.0);
     }
 
     private void recorderStart() {

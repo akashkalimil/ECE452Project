@@ -135,6 +135,10 @@ public class SessionManager {
                 .collect(Collectors.toList());
     }
 
+    public int getSaveCount() {
+        return saveCount;
+    }
+
     private static final Comparator<Session> SessionDateComparator = (a, b) -> {
         try {
             Date dateA = DATE_FORMAT.parse(a.directory.getName());
