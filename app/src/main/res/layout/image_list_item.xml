@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.teamred.candid.ui.view.SquareRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="148dp"
+    android:layout_height="wrap_content"
     android:layout_margin="1dp"
-    android:scaleType="centerCrop" />
+    android:background="#E7E7E7">
+
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:longClickable="true"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/check"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignLeft="@id/image_view"
+        android:layout_alignTop="@id/image_view"
+        android:layout_marginLeft="-6dp"
+        android:layout_marginTop="-6dp"
+        android:src="@drawable/ic_check"
+        android:visibility="gone" />
+</com.teamred.candid.ui.view.SquareRelativeLayout>

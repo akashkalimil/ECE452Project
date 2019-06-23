@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         View overlay = findViewById(R.id.overlay);
 
         findViewById(R.id.sessions).setOnClickListener(v ->
-                startActivity(new Intent(this, SessionsActivity.class)));
+                startActivity(new Intent(this, SessionListActivity.class)));
 
         photoCountTextView = findViewById(R.id.photo_count);
 
@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
                 // Open new activity with collection of photos from this session
                 File sessionDir = sessionManager.end();
-                startActivity(ViewSessionActivity.newIntent(this, sessionDir));
+                photoCountTextView.setText("");
+                startActivity(SessionActivity.newIntent(this, sessionDir));
 
             } else { // Start
                 sessionInProgress = true;
