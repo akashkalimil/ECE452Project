@@ -143,7 +143,7 @@ public class SessionManager {
         try {
             Date dateA = DATE_FORMAT.parse(a.directory.getName());
             Date dateB = DATE_FORMAT.parse(b.directory.getName());
-            return dateA.compareTo(dateB);
+            return dateB.compareTo(dateA);
         } catch (ParseException e) {
             return 0;
         }
