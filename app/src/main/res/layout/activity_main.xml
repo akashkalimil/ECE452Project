@@ -28,12 +28,19 @@
             android:textStyle="bold" />
     </FrameLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bottom_gradient" />
+
     <TextView
         android:id="@+id/photo_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
-        android:layout_margin="18dp"
+        android:layout_margin="20dp"
+        android:layout_marginBottom="8dp"
         android:fontFamily="sans-serif-light"
         android:textColor="@android:color/white" />
 

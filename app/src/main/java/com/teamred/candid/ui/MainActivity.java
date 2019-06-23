@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -105,11 +106,20 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(moment -> {
                     Log.d(TAG, "Detected candid moment! " + moment);
-
-                    int count = sessionManager.getSaveCount();
-                    String format = "Captured %s moment" + (count > 1 ? "s" : "");
-                    photoCountTextView.setText(String.format(format, sessionManager.getSaveCount()));
+                    animateCapturedMoment();
                 });
+    }
+
+    private void animateCapturedMoment() {
+        photoCountTextView.animate().alpha(0).scaleX(.9f).scaleY(.9f).withEndAction(() -> {
+            int count = sessionManager.getSaveCount();
+            String format = "Captured %s moment" + (count > 1 ? "s" : "");
+            photoCountTextView.setText(String.format(format, sessionManager.getSaveCount()));
+
+            photoCountTextView.animate().alpha(1).scaleX(1.2f).scaleY(1.2f)
+                    .setInterpolator(new AccelerateDecelerateInterpolator())
+                    .withEndAction(() -> photoCountTextView.animate().scaleX(1).scaleY(1));
+        });
     }
 
     @Override
