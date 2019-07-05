@@ -3,6 +3,7 @@ package com.teamred.candid.data;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.teamred.candid.model.Moment;
 
@@ -82,19 +83,27 @@ public class SessionManager {
         if (!moment.hasFaces()) return false;
 
         // Return true if we're in selfie mode and there's one person smiling
-        List<FirebaseVisionFace> faces = moment.getFaces();
-        if (mode == Mode.SELFIE) {
-            return faces.size() == 1 &&
-                    faces.get(0).getSmilingProbability() > SMILING_THRESHOLD;
-        }
+//        List<FirebaseVisionFace> faces = moment.getFaces();
+//        if (mode == Mode.SELFIE) {
+//            return faces.size() == 1 &&
+//                    faces.get(0).getSmilingProbability() > SMILING_THRESHOLD;
+//        }
+//
+//        // Otherwise only return true if everyone's smiling
+//        for (FirebaseVisionFace face : faces) {
+//            if (face.getSmilingProbability() < SMILING_THRESHOLD) {
+//                return false;
+//            }
+//        }
+//        return true;
 
-        // Otherwise only return true if everyone's smiling
-        for (FirebaseVisionFace face : faces) {
-            if (face.getSmilingProbability() < SMILING_THRESHOLD) {
-                return false;
+        // TODO: this is for demo
+        for (FirebaseVisionFace image : moment.getFaces()) {
+            if (image.getSmilingProbability() > SMILING_THRESHOLD) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public static class Session {

@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+def getKey(String property){
+    Properties properties = new Properties()
+    properties.load(new FileInputStream("/Users/priyesh/Documents/Candid/keys"))
+    return "\"" + properties.getProperty(property) +"\""
+}
+
 android {
     signingConfigs {
         debug {
@@ -20,8 +26,12 @@ android {
     }
     buildTypes {
         release {
+            buildConfigField "String", "CV_API_KEY", getKey("CloudVisionApiKey")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            buildConfigField "String", "CV_API_KEY", getKey("CloudVisionApiKey")
         }
     }
     compileOptions {
@@ -47,13 +57,21 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'com.otaliastudios:cameraview:1.6.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.6.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.6.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.6.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.1'
 
     // Google Drive
-    implementation 'com.google.firebase:firebase-auth:17.0.0'
-    implementation 'com.google.android.gms:play-services-drive:16.1.0'
-    implementation 'com.google.android.gms:play-services-auth:16.0.1'
-    implementation 'com.google.api-client:google-api-client-android:1.22.0'
-    implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
+//    implementation 'com.google.firebase:firebase-auth:17.0.0'
+//    implementation 'com.google.android.gms:play-services-drive:16.1.0'
+//    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+//    implementation 'com.google.api-client:google-api-client-android:1.22.0'
+//    implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
+
+    implementation 'com.google.api-client:google-api-client-android:1.23.0' exclude module: 'httpclient'
+    implementation 'com.google.http-client:google-http-client-gson:1.23.0' exclude module: 'httpclient'
+    implementation 'com.google.apis:google-api-services-vision:v1-rev369-1.23.0'
 
     // Testing
     testImplementation 'junit:junit:4.12'
