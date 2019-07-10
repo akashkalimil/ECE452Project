@@ -32,7 +32,7 @@ class BatchRequest {
 
         ImageRequest(Bitmap bitmap) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 75, out);
             byte[] bytes = out.toByteArray();
             String encoded = Base64.encodeToString(bytes, Base64.DEFAULT);
             image = new Image(encoded);

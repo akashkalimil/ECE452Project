@@ -14,11 +14,8 @@ import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
 
-import java.util.concurrent.TimeUnit;
-
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         cameraView = findViewById(R.id.camera);
         cameraView.setLifecycleOwner(this);
+        cameraView.clearFrameProcessors();
 
         Button startStop = findViewById(R.id.start_button);
         View overlay = findViewById(R.id.overlay);
@@ -48,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         photoCountTextView = findViewById(R.id.photo_count);
 
-        sessionManager = new SessionManager(SessionManager.Mode.SELFIE, getFilesDir());
-
+        sessionManager = new SessionManager(getFilesDir());
 
         startStop.setOnClickListener(v -> {
             if (sessionInProgress) { // Stop
@@ -61,10 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 });
                 overlay.animate().setStartDelay(200).alpha(1);
 
-                // Open new activity with collection of photos from this session
-                SessionManager.Session session = sessionManager.end();
-                photoCountTextView.setText("");
-                startActivity(SessionActivity.newIntent(this, session.getDirectory()));
+                endSession();
 
             } else { // Start
                 sessionInProgress = true;
@@ -80,49 +74,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startSession() {
-        sessionManager.start();
-
         BitmapProcessor bitmapProcessor = new BitmapProcessor();
-        cameraView.clearFrameProcessors();
         cameraView.addFrameProcessor(bitmapProcessor);
 
-        dispose = bitmapProcessor.imageStream()
-                .sample(5, TimeUnit.SECONDS)
-                .flatMapSingle(sessionManager::saveBitmap)
-                .subscribeOn(Schedulers.io())
+        dispose = sessionManager.start(bitmapProcessor.imageStream())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(file -> {
                     Log.d(TAG, "Saved file: " + file.getPath());
                     animateCapturedMoment();
                 });
+    }
 
-//        AudioProcessor audioProcessor = new AudioProcessor();
-//
-//        DetectorCoordinator coordinator = new DetectorCoordinator(
-//                imageProcessor.imageStream(),
-//                audioProcessor.audioStream(),
-//                new FaceDetector(),
-//                new NoiseDetector()
-//        );
-//
-//        dispose = coordinator.detectedMomentStream()
-//                .doOnNext(s -> Log.d(TAG, s.toString()))
-//                .filter(sessionManager::shouldSaveMoment)
-//                .throttleFirst(3, TimeUnit.SECONDS) // After capturing, dont save anything for 3 seconds
-//                .flatMapSingle(sessionManager::saveMoment)
-//                .subscribeOn(Schedulers.newThread())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(moment -> {
-//                    Log.d(TAG, "Detected candid moment! " + moment);
-//                    animateCapturedMoment();
-//                });
+    private void endSession() {
+        // Open new activity with collection of photos from this session
+        SessionManager.Session session = sessionManager.end();
+        photoCountTextView.setText("");
+        startActivity(SessionActivity.newIntent(this, session.getDirectory()));
     }
 
     private void animateCapturedMoment() {
         photoCountTextView.animate().alpha(0).scaleX(.9f).scaleY(.9f).withEndAction(() -> {
-            int count = sessionManager.getSaveCount();
+            int count = sessionManager.getPhotoCount();
             String format = "Captured %s moment" + (count > 1 ? "s" : "");
-            photoCountTextView.setText(String.format(format, sessionManager.getSaveCount()));
+            photoCountTextView.setText(String.format(format, sessionManager.getPhotoCount()));
 
             photoCountTextView.animate().alpha(1).scaleX(1.2f).scaleY(1.2f)
                     .setInterpolator(new AccelerateDecelerateInterpolator())

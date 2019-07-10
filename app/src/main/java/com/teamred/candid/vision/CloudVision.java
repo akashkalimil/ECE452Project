@@ -6,9 +6,10 @@ import com.teamred.candid.BuildConfig;
 import com.teamred.candid.vision.BatchRequest.ImageRequest;
 import com.teamred.candid.vision.BatchResponse.Response;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -40,7 +41,9 @@ public class CloudVision {
     public CloudVision() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(interceptor)
+                .build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
@@ -52,13 +55,23 @@ public class CloudVision {
         service = retrofit.create(Service.class);
     }
 
-    public Single<List<Response>> annotateImages(List<Bitmap> bitmaps) {
-        List<ImageRequest> requests = bitmaps.stream()
-                .map(ImageRequest::new)
-                .collect(Collectors.toList());
+    // Cloud vision max payload is 10MB
+    // Each photo is around 1.5-2MB, so sending 4 * 2 = 8MB should be safe
+    private static final int IMAGES_PER_BATCH = 4;
 
-        return service.annotateImage(KEY, new BatchRequest(requests))
-                .map(i -> i.responses);
+    public Single<List<Response>> annotateImages(List<Bitmap> bitmaps) {
+        return Observable.fromIterable(bitmaps)
+                .map(ImageRequest::new)
+                .buffer(IMAGES_PER_BATCH)
+                .concatMapSingle(requests -> service.annotateImage(KEY, new BatchRequest(requests)))
+                .toList()
+                .map(batchResponses -> {
+                    List<Response> merged = new ArrayList<>();
+                    for (BatchResponse response : batchResponses) {
+                        merged.addAll(response.responses);
+                    }
+                    return merged;
+                });
     }
 
 

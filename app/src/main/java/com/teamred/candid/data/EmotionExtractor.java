@@ -23,10 +23,10 @@ public class EmotionExtractor {
     private static String VERY_UNLIKELY = "VERY_UNLIKELY";
 
     Set<Emotion> extract(Response response) {
-        if (response.annotations == null) return new HashSet<>();
+        if (response.faceAnnotations == null) return new HashSet<>();
 
         Set<Emotion> res = new HashSet<>();
-        for (FaceAnnotation face : response.annotations) {
+        for (FaceAnnotation face : response.faceAnnotations) {
             if (isLikely(face.joyLikelihood)) {
                 res.add(Emotion.JOY);
             } else if (isLikely(face.sorrowLikelihood)) {

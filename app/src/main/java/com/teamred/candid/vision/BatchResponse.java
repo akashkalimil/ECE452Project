@@ -8,10 +8,10 @@ public class BatchResponse {
 
     public class Response {
         @Nullable
-        public List<CloudVision.FaceAnnotation> annotations;
+        public List<CloudVision.FaceAnnotation> faceAnnotations;
 
         public boolean hasFaces() {
-            return annotations != null;
+            return faceAnnotations != null;
         }
     }
 
