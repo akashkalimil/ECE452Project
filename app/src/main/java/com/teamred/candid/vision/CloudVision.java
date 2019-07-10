@@ -1,13 +1,11 @@
 package com.teamred.candid.vision;
 
 import android.graphics.Bitmap;
-import android.util.Base64;
 
 import com.teamred.candid.BuildConfig;
-import com.teamred.candid.vision.CloudVision.BatchAnnotationResponse.AnnotationResponse;
+import com.teamred.candid.vision.BatchRequest.ImageRequest;
+import com.teamred.candid.vision.BatchResponse.Response;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +29,7 @@ public class CloudVision {
 
         @POST("./images:annotate")
         @Headers("Content-Type: application/json")
-        Single<BatchAnnotationResponse> annotateImage(
+        Single<BatchResponse> annotateImage(
                 @Query("key") String key,
                 @Body BatchRequest requests
         );
@@ -54,58 +52,20 @@ public class CloudVision {
         service = retrofit.create(Service.class);
     }
 
-    public Single<List<AnnotationResponse>> annotateImages(List<Bitmap> bitmaps) {
+    public Single<List<Response>> annotateImages(List<Bitmap> bitmaps) {
         List<ImageRequest> requests = bitmaps.stream()
                 .map(ImageRequest::new)
                 .collect(Collectors.toList());
 
-        return service.annotateImage(KEY, new BatchRequest(requests)).map(i -> i.responses);
+        return service.annotateImage(KEY, new BatchRequest(requests))
+                .map(i -> i.responses);
     }
 
-    class BatchRequest {
-        List<ImageRequest> requests;
-
-        BatchRequest(List<ImageRequest> requests) {
-            this.requests = requests;
-        }
-    }
-
-    class BatchAnnotationResponse {
-        class AnnotationResponse {
-            List<FaceAnnotation> faceAnnotations;
-        }
-        List<AnnotationResponse> responses;
-    }
 
     public class FaceAnnotation {
         public String joyLikelihood;
         public String sorrowLikelihood;
         public String angerLikelihood;
         public String surpriseLikelihood;
-    }
-
-    static class ImageRequest {
-        static class Image {
-            String content;
-
-            Image(String content) {
-                this.content = content;
-            }
-        }
-
-        static class Feature {
-            final String type = "FACE_DETECTION";
-        }
-
-        final Image image;
-        final List<Feature> features = Collections.singletonList(new Feature());
-
-        ImageRequest(Bitmap bitmap) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            byte[] bytes = out.toByteArray();
-            String encoded = Base64.encodeToString(bytes, Base64.DEFAULT);
-            image = new Image(encoded);
-        }
     }
 }

@@ -10,15 +10,10 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.otaliastudios.cameraview.CameraView;
-import com.teamred.candid.camera.AudioProcessor;
-import com.teamred.candid.camera.FaceDetector;
-import com.teamred.candid.camera.FirebaseImageProcessor;
+import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
-import com.teamred.candid.camera.NoiseDetector;
-import com.teamred.candid.data.DetectorCoordinator;
 import com.teamred.candid.data.SessionManager;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -67,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
                 overlay.animate().setStartDelay(200).alpha(1);
 
                 // Open new activity with collection of photos from this session
-                File sessionDir = sessionManager.end();
+                SessionManager.Session session = sessionManager.end();
                 photoCountTextView.setText("");
-                startActivity(SessionActivity.newIntent(this, sessionDir));
+                startActivity(SessionActivity.newIntent(this, session.getDirectory()));
 
             } else { // Start
                 sessionInProgress = true;
@@ -87,30 +82,40 @@ public class MainActivity extends AppCompatActivity {
     private void startSession() {
         sessionManager.start();
 
-        FirebaseImageProcessor imageProcessor = new FirebaseImageProcessor();
+        BitmapProcessor bitmapProcessor = new BitmapProcessor();
         cameraView.clearFrameProcessors();
-        cameraView.addFrameProcessor(imageProcessor);
+        cameraView.addFrameProcessor(bitmapProcessor);
 
-        AudioProcessor audioProcessor = new AudioProcessor();
-
-        DetectorCoordinator coordinator = new DetectorCoordinator(
-                imageProcessor.imageStream(),
-                audioProcessor.audioStream(),
-                new FaceDetector(),
-                new NoiseDetector()
-        );
-
-        dispose = coordinator.detectedMomentStream()
-                .doOnNext(s -> Log.d(TAG, s.toString()))
-                .filter(sessionManager::shouldSaveMoment)
-                .throttleFirst(3, TimeUnit.SECONDS) // After capturing, dont save anything for 3 seconds
-                .flatMapSingle(sessionManager::saveMoment)
-                .subscribeOn(Schedulers.newThread())
+        dispose = bitmapProcessor.imageStream()
+                .sample(5, TimeUnit.SECONDS)
+                .flatMapSingle(sessionManager::saveBitmap)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(moment -> {
-                    Log.d(TAG, "Detected candid moment! " + moment);
+                .subscribe(file -> {
+                    Log.d(TAG, "Saved file: " + file.getPath());
                     animateCapturedMoment();
                 });
+
+//        AudioProcessor audioProcessor = new AudioProcessor();
+//
+//        DetectorCoordinator coordinator = new DetectorCoordinator(
+//                imageProcessor.imageStream(),
+//                audioProcessor.audioStream(),
+//                new FaceDetector(),
+//                new NoiseDetector()
+//        );
+//
+//        dispose = coordinator.detectedMomentStream()
+//                .doOnNext(s -> Log.d(TAG, s.toString()))
+//                .filter(sessionManager::shouldSaveMoment)
+//                .throttleFirst(3, TimeUnit.SECONDS) // After capturing, dont save anything for 3 seconds
+//                .flatMapSingle(sessionManager::saveMoment)
+//                .subscribeOn(Schedulers.newThread())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(moment -> {
+//                    Log.d(TAG, "Detected candid moment! " + moment);
+//                    animateCapturedMoment();
+//                });
     }
 
     private void animateCapturedMoment() {

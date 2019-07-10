@@ -13,8 +13,9 @@ import com.teamred.candid.data.Detector;
 import java.util.List;
 
 import io.reactivex.Maybe;
+import io.reactivex.Single;
 
-public class FaceDetector implements Detector<FirebaseVisionImage, FaceDetector.Result> {
+public class FaceDetector {
 
     public static class Result {
         public final Bitmap image;
@@ -39,9 +40,8 @@ public class FaceDetector implements Detector<FirebaseVisionImage, FaceDetector.
         detector = FirebaseVision.getInstance().getVisionFaceDetector(DETECTOR_OPTIONS);
     }
 
-    @Override
-    public Maybe<Result> detect(FirebaseVisionImage image) {
-        return Maybe.create(emitter -> {
+    public Single<Result> detect(FirebaseVisionImage image) {
+        return Single.create(emitter -> {
             try {
                 List<FirebaseVisionFace> faces = Tasks.await(detector.detectInImage(image));
                 emitter.onSuccess(new Result(image.getBitmap(), faces));

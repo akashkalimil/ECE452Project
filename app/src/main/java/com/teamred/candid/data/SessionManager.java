@@ -59,9 +59,9 @@ public class SessionManager {
     }
 
     // Returns directory containing images taken during this session
-    public File end() {
+    public Session end() {
         saveCount = 0;
-        return sessionDirectory;
+        return new Session(sessionDirectory);
     }
 
     public Single<File> saveMoment(Moment moment) {
@@ -71,6 +71,21 @@ public class SessionManager {
             Log.d("SessionManager", "saving image!");
             FileOutputStream out = new FileOutputStream(file);
             moment.getBitmap().compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+            return Single.just(file);
+        } catch (Exception e) {
+            return Single.error(e);
+        }
+    }
+
+    public Single<File> saveBitmap(Bitmap bitmap) {
+        String filename = String.format("%s.png", saveCount++);
+        File file = new File(sessionDirectory, filename);
+        try {
+            Log.d("SessionManager", "saving image!");
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();
             out.close();
             return Single.just(file);
