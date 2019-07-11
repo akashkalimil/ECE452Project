@@ -14,11 +14,7 @@ import android.widget.TextView;
 import com.teamred.candid.R;
 import com.teamred.candid.data.EmotionExtractor.Emotion;
 
-import org.w3c.dom.Text;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +56,6 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private boolean inSelectionMode = false;
 
     SessionAdapter(Map<Emotion, List<String>> groups, Listener listener) {
-//        this.groups = groups;
         this.listener = listener;
         this.selected = new HashSet<>();
         unrolledGroups = new ArrayList<>();

@@ -77,7 +77,6 @@ public class SessionListActivity extends AppCompatActivity {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.session_list_item, parent, false);
             return new ViewHolder(v);
-
         }
 
         @Override

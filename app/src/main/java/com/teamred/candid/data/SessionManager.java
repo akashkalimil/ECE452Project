@@ -23,9 +23,10 @@ import io.reactivex.schedulers.Schedulers;
 public class SessionManager {
 
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy", Locale.US);
+    private static final DateFormat VISIBLE_DATE_FORMAT = new SimpleDateFormat("MMMM dd", Locale.US);
 
     private static final String TAG = "SessionManager";
-    private static final DateFormat VISIBLE_DATE_FORMAT = new SimpleDateFormat("MMMM dd", Locale.US);
+    private static final int CAMERA_SAMPLE_PERIOD = 5;
 
     private int photoCount;
     private File sessionDirectory;
@@ -40,7 +41,7 @@ public class SessionManager {
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        return frames.sample(5, TimeUnit.SECONDS)
+        return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
     }

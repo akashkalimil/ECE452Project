@@ -8,11 +8,9 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
-import com.teamred.candid.data.Detector;
 
 import java.util.List;
 
-import io.reactivex.Maybe;
 import io.reactivex.Single;
 
 public class FaceDetector {
