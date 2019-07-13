@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.otaliastudios.cameraview.CameraView;
+import com.teamred.candid.camera.AudioProcessor;
 import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
@@ -77,7 +78,9 @@ public class MainActivity extends AppCompatActivity {
         BitmapProcessor bitmapProcessor = new BitmapProcessor();
         cameraView.addFrameProcessor(bitmapProcessor);
 
-        dispose = sessionManager.start(bitmapProcessor.imageStream())
+        AudioProcessor audioProcessor = new AudioProcessor();
+        dispose = sessionManager
+                .start(bitmapProcessor.imageStream(), audioProcessor.audioStream())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(file -> {
                     Log.d(TAG, "Saved file: " + file.getPath());

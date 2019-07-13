@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
@@ -36,10 +37,15 @@ public class SessionManager {
         this.rootDirectory = fileDirectory;
     }
 
-    public Observable<File> start(Observable<Bitmap> frames) {
+    public Observable<File> start(Observable<Bitmap> frames, Observable<Double> audio) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
+
+        audio
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(s -> Log.d(TAG, "audio level " + s));
 
         return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
                 .flatMapSingle(this::savePhoto)
