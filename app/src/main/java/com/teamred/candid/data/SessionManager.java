@@ -37,7 +37,7 @@ public class SessionManager {
         this.rootDirectory = fileDirectory;
     }
 
-    public Observable<File> start(Observable<Bitmap> frames, Observable<Double> audio) {
+    public Observable<File> start(Observable<Bitmap> frames, Observable<Integer> audio) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();

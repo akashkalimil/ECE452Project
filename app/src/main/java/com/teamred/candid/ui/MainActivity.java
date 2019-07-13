@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.otaliastudios.cameraview.CameraView;
+import com.otaliastudios.cameraview.Facing;
+import com.otaliastudios.cameraview.Flash;
 import com.teamred.candid.camera.AudioProcessor;
 import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
@@ -26,8 +28,11 @@ public class MainActivity extends AppCompatActivity {
     private CameraView cameraView;
     private SessionManager sessionManager;
 
+    private Button startButton;
     private TextView photoCountTextView;
-    boolean sessionInProgress = false;
+    private View overlay;
+
+    private boolean sessionInProgress = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,40 +43,52 @@ public class MainActivity extends AppCompatActivity {
         cameraView = findViewById(R.id.camera);
         cameraView.setLifecycleOwner(this);
         cameraView.clearFrameProcessors();
+        cameraView.setFlash(Flash.OFF);
+        cameraView.setFacing(Facing.BACK);
 
-        Button startStop = findViewById(R.id.start_button);
-        View overlay = findViewById(R.id.overlay);
-
-        findViewById(R.id.sessions).setOnClickListener(v ->
-                startActivity(new Intent(this, SessionListActivity.class)));
-
+        startButton = findViewById(R.id.start_button);
+        overlay = findViewById(R.id.overlay);
         photoCountTextView = findViewById(R.id.photo_count);
 
         sessionManager = new SessionManager(getFilesDir());
+    }
 
-        startStop.setOnClickListener(v -> {
-            if (sessionInProgress) { // Stop
-                sessionInProgress = false;
+    public void onStartClick(View v) {
+        if (sessionInProgress) { // Stop
+            sessionInProgress = false;
 
-                startStop.animate().alpha(0).withEndAction(() -> {
-                    startStop.setText("Start");
-                    startStop.animate().alpha(1);
-                });
-                overlay.animate().setStartDelay(200).alpha(1);
+            startButton.animate().alpha(0).withEndAction(() -> {
+                startButton.setText("Start");
+                startButton.animate().alpha(1);
+            });
+            overlay.animate().setStartDelay(200).alpha(1);
 
-                endSession();
+            endSession();
 
-            } else { // Start
-                sessionInProgress = true;
+        } else { // Start
+            sessionInProgress = true;
 
-                startStop.animate().setStartDelay(200).alpha(0).withEndAction(() -> {
-                    startStop.setText("End");
-                    startStop.animate().alpha(1);
-                    startSession();
-                });
-                overlay.animate().setStartDelay(200).alpha(0.5f);
-            }
-        });
+            startButton.animate().setStartDelay(200).alpha(0).withEndAction(() -> {
+                startButton.setText("End");
+                startButton.animate().alpha(1);
+                startSession();
+            });
+            overlay.animate().setStartDelay(200).alpha(0.5f);
+        }
+    }
+
+    public void onSessionsClick(View v) {
+        startActivity(new Intent(this, SessionListActivity.class));
+    }
+
+    public void onFlashClick(View v) {
+        Flash flash = cameraView.getFlash();
+        cameraView.setFlash(flash == Flash.OFF ? Flash.ON : Flash.OFF);
+    }
+
+    public void onFlipCameraClick(View v) {
+        Facing facing = cameraView.getFacing();
+        cameraView.setFacing(facing == Facing.BACK ? Facing.FRONT : Facing.BACK);
     }
 
     private void startSession() {
