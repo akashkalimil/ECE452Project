@@ -37,15 +37,14 @@ public class SessionManager {
         this.rootDirectory = fileDirectory;
     }
 
-    public Observable<File> start(Observable<Bitmap> frames, Observable<Integer> audio) {
+    public Observable<File> start(Observable<Bitmap> frames, Observable<Boolean> audio) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
         audio
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(s -> Log.d(TAG, "audio level " + s));
+                .subscribeOn(Schedulers.newThread())// setup thread
+                .subscribe(); //start thread
 
         return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
                 .flatMapSingle(this::savePhoto)
