@@ -14,13 +14,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
@@ -31,12 +30,13 @@ public class SessionManager {
     private static final String TAG = "SessionManager";
     private static final int CAMERA_SAMPLE_PERIOD = 5;
 
-    private int pictureCount;
+    private AtomicInteger pictureCount;
     private File sessionDirectory;
     private final File rootDirectory;
 
     public SessionManager(File fileDirectory) {
         this.rootDirectory = fileDirectory;
+        this.pictureCount = new AtomicInteger();
     }
 
     public Observable<File> start(Observable<Bitmap> frames, Observable<Boolean> audio) {
@@ -44,21 +44,23 @@ public class SessionManager {
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        Observable<Bitmap> sampled = frames
+        Observable<File> files = frames
                 .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.newThread());
-
-        Observable<Bitmap> audioSampled = frames
-                .sample(audio)
-                .subscribeOn(Schedulers.newThread());
-
-        return Observable.merge(sampled, audioSampled)
+                .subscribeOn(Schedulers.newThread())
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
+
+        Observable<File> loudFiles = frames
+                .sample(audio)
+                .subscribeOn(Schedulers.newThread())
+                .flatMapSingle(this::saveLoudPhoto)
+                .subscribeOn(Schedulers.io());
+
+        return Observable.merge(files, loudFiles);
     }
 
     public Session end() {
-        pictureCount = 0;
+        pictureCount.set(0);
         return new Session(sessionDirectory);
     }
 
@@ -71,11 +73,19 @@ public class SessionManager {
     }
 
     public int getPictureCount() {
-        return pictureCount;
+        return pictureCount.get();
     }
 
-    private synchronized Single<File> savePhoto(Bitmap bitmap) {
-        String filename = String.format("%s.png", pictureCount++);
+    private Single<File> savePhoto(Bitmap bitmap) {
+        return savePhoto(bitmap, "");
+    }
+
+    private Single<File> saveLoudPhoto(Bitmap bitmap) {
+        return savePhoto(bitmap, "-loud");
+    }
+
+    private Single<File> savePhoto(Bitmap bitmap, String suffix) {
+        String filename = String.format("%s%s.png", pictureCount.incrementAndGet(), suffix);
         File file = new File(sessionDirectory, filename);
         try {
             Log.d("SessionManager", "saving image!");
