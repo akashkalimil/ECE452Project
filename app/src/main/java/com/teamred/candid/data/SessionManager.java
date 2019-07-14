@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -42,12 +43,15 @@ public class SessionManager {
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        audio
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(s -> Log.d(TAG, "audio level " + s));
+        Observable<Bitmap> sampled = frames
+                .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.newThread());
 
-        return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+        Observable<Bitmap> audioSampled = frames
+                .sample(audio)
+                .subscribeOn(Schedulers.newThread());
+
+        return Observable.merge(sampled, audioSampled)
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
     }
@@ -69,7 +73,7 @@ public class SessionManager {
         return pictureCount;
     }
 
-    private Single<File> savePhoto(Bitmap bitmap) {
+    private synchronized Single<File> savePhoto(Bitmap bitmap) {
         String filename = String.format("%s.png", pictureCount++);
         File file = new File(sessionDirectory, filename);
         try {

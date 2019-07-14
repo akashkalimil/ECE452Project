@@ -64,16 +64,6 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.data = unrollClassifications(groups);
     }
 
-    private List<Object> unrollClassifications(Map<Emotion, List<String>> classifications) {
-        List<Object> list = new ArrayList<>();
-        for (Map.Entry<Emotion, List<String>> entry : classifications.entrySet()) {
-            if (entry.getValue().isEmpty()) continue;
-            list.add(entry.getKey());
-            list.addAll(entry.getValue());
-        }
-        return list;
-    }
-
     @Override
     public int getItemViewType(int position) {
         return data.get(position) instanceof Emotion ? HEADER : IMAGE;
@@ -194,5 +184,15 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         selectedIndices.clear();
         notifyDataSetChanged();
         listener.onSelectionModeExited();
+    }
+
+    private List<Object> unrollClassifications(Map<Emotion, List<String>> classifications) {
+        List<Object> list = new ArrayList<>();
+        for (Map.Entry<Emotion, List<String>> entry : classifications.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            list.add(entry.getKey());
+            list.addAll(entry.getValue());
+        }
+        return list;
     }
 }
