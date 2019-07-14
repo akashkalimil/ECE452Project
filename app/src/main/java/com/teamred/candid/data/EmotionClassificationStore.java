@@ -15,13 +15,13 @@ import java.util.Map;
 
 import io.reactivex.Single;
 
-class EmotionClassificationStore {
+public class EmotionClassificationStore {
 
     private static final String FILE_NAME = "classifications.txt";
 
     private final File classifications;
 
-    EmotionClassificationStore(Session session) {
+    public EmotionClassificationStore(Session session) {
         classifications = new File(session.getDirectory() + File.separator + FILE_NAME);
     }
 
@@ -29,7 +29,7 @@ class EmotionClassificationStore {
         return classifications.exists() && classifications.length() > 0;
     }
 
-    Single<Map<Emotion, List<String>>> write(Map<Emotion, List<String>> classifications) {
+    public Single<Map<Emotion, List<String>>> write(Map<Emotion, List<String>> classifications) {
         return Single.create(emitter -> {
             try {
                 FileOutputStream out = new FileOutputStream(this.classifications);
@@ -50,7 +50,7 @@ class EmotionClassificationStore {
         });
     }
 
-    Single<Map<Emotion, List<String>>> read() {
+    public Single<Map<Emotion, List<String>>> read() {
         return Single.create(emitter -> {
             try {
                 FileInputStream in = new FileInputStream(classifications);

@@ -13,6 +13,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import com.teamred.candid.R;
+import com.teamred.candid.data.EmotionClassificationStore;
 import com.teamred.candid.data.EmotionClassifier.Emotion;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.data.SessionProcessor;
@@ -24,7 +25,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -49,6 +52,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
     private SessionAdapter adapter;
     private View menuContainer;
     private Disposable dispose;
+    private EmotionClassificationStore classificationStore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +79,8 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                     .doOnSuccess(g -> dialog.dismiss())
                     .doOnError(e -> dialog.dismiss())
                     .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
+            classificationStore = new EmotionClassificationStore(session);
+
         } else {
             // show default empty session view
         }
@@ -83,10 +89,13 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         findViewById(R.id.upload).setOnClickListener(this::onSelectionMenuClick);
         findViewById(R.id.delete).setOnClickListener(this::onSelectionMenuClick);
         menuContainer = findViewById(R.id.selection_menu_contaienr);
+
     }
 
     private void onSelectionMenuClick(View menuItem) {
-        List<String> selected = adapter.getSelectedFiles();
+        Set<Integer> indices = adapter.getSelectedIndices();
+        Set<File> files = adapter.getSelectedFiles();
+
         switch (menuItem.getId()) {
             case R.id.save:
                 // TODO
@@ -95,10 +104,15 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                 // TODO
                 break;
             case R.id.delete:
-//                for (String file : selected) file.delete();
-//                adapter.setGroups(sessionDirectory.listFiles());
+                for (File file : files) file.delete();
+                adapter.removeAtIndices(indices);
+                classificationStore.write(adapter.getData())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
                 break;
         }
+
         adapter.exitSelectionMode();
     }
 
@@ -117,9 +131,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         });
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
-
     }
-
 
     private static String getDisplayDate(File directory) {
         try {
@@ -146,7 +158,6 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "onStop");
         if (dispose != null && !dispose.isDisposed()) {
             dispose.dispose();
         }

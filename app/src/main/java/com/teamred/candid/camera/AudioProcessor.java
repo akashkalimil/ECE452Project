@@ -42,4 +42,6 @@ public class AudioProcessor {
         recorder.stop();
         recorder.release();
     }
+//    2019-07-13 21:33:10.548 32143-967/com.teamred.candid W/StreamingFormatChecker: ML Kit has detected that you seem to pass camera frames to the detector as a Bitmap object. This is inefficient. Please use YUV_420_888 format for camera2 API or NV21 format for (legacy) camera API and directly pass down the byte array to ML Kit.
+
 }
