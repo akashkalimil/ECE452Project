@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         overlay = findViewById(R.id.overlay);
         photoCountTextView = findViewById(R.id.photo_count);
 
-        sessionManager = new SessionManager(getFilesDir());
+        sessionManager = new SessionManager(getFilesDir(), 5);
     }
 
     public void onStartClick(View v) {
