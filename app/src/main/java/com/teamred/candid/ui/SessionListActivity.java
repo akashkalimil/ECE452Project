@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,20 +17,14 @@ import android.widget.TextView;
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.model.Session;
-import com.teamred.candid.vision.CloudVision;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import io.reactivex.Scheduler;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 public class SessionListActivity extends AppCompatActivity {
+
+    private SessionManager sessionManager;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +32,21 @@ public class SessionListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sessions);
         getSupportActionBar().setTitle("Sessions");
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        SessionManager sessionManager = new SessionManager(getFilesDir());
-        List<Session> sessions = sessionManager.getSessions();
-
-        SessionsAdapter adapter = new SessionsAdapter(sessions);
-        recyclerView.setAdapter(adapter);
+        sessionManager = new SessionManager(getFilesDir());
     }
-    
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        List<Session> sessions = sessionManager.getSessions();
+        recyclerView.setAdapter(new SessionsAdapter(sessions));
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final ImageView imageView;
         private final TextView dateTextView;
