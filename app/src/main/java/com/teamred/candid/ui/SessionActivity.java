@@ -24,12 +24,17 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import static com.teamred.candid.data.SessionManager.*;
+
+
 
 @SuppressWarnings("deprecation")
 public class SessionActivity extends AppCompatActivity implements SessionAdapter.Listener {
@@ -65,7 +70,6 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
 
         if (files.length > 0) {
             ProgressDialog dialog = new ProgressDialog(this);
-            dialog.setMessage("Processing session...");
             Session session = new Session(sessionDirectory);
             SessionProcessor processor = new SessionProcessor(session);
             dispose = processor.groupByEmotion()
@@ -75,10 +79,19 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                     .doOnSuccess(g -> dialog.dismiss())
                     .doOnError(e -> dialog.dismiss())
                     .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
+
+            String[] dialogMsg = {"Analyzing emotions...", "Grouping photos...", "Polishing photos..."};
+            AtomicInteger atomicInteger = new AtomicInteger();
+            dialog.setMessage("Analyzing audio...");
+            Observable.interval(2, TimeUnit.SECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(i -> {
+                        int j = atomicInteger.getAndIncrement();
+                        dialog.setMessage(dialogMsg[j]);
+                    });
         } else {
             // show default empty session view
         }
-
         findViewById(R.id.save).setOnClickListener(this::onSelectionMenuClick);
         findViewById(R.id.upload).setOnClickListener(this::onSelectionMenuClick);
         findViewById(R.id.delete).setOnClickListener(this::onSelectionMenuClick);

@@ -1,7 +1,9 @@
 package com.teamred.candid.ui;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +22,7 @@ import com.teamred.candid.data.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
+@SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CandidMain";
@@ -68,11 +71,22 @@ public class MainActivity extends AppCompatActivity {
         } else { // Start
             sessionInProgress = true;
 
+            ProgressDialog dialog = new ProgressDialog(this);
+            dialog.setMessage("Analyzing audio...");
+            dialog.show();
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    dialog.dismiss();
+                }
+            }, 5000);
             startButton.animate().setStartDelay(200).alpha(0).withEndAction(() -> {
                 startButton.setText("End");
                 startButton.animate().alpha(1);
                 startSession();
             });
+
             overlay.animate().setStartDelay(200).alpha(0.5f);
         }
     }

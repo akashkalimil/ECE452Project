@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 def getKey(String property){
     Properties properties = new Properties()
-    properties.load(new FileInputStream("/Users/priyesh/Documents/Candid/keys"))
+    properties.load(new FileInputStream("/Users/alexzandi/Candid/keys"))
     return "\"" + properties.getProperty(property) +"\""
 }
 
 android {
     signingConfigs {
         debug {
-            storeFile file('/Users/priyesh/Desktop/debug.keystore')
+            storeFile file('/Users/alexzandi/Candid/debug.keystore')
             storePassword 'candid123'
             keyAlias = 'teamred'
             keyPassword 'candid123'
