@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -67,13 +69,17 @@ public class SessionProcessor {
                         }
                     }
                 })
+                .map(classifications -> {
+                    classifications.put(Emotion.LOUD, getLoudFiles());
+                    return classifications;
+                })
                 .flatMap(classificationStore::write);
     }
 
     private Observable<String> getFilesWithFaces() {
         return Observable
                 .fromArray(session.getDirectory().listFiles())
-                .filter(f -> f.isFile() && f.getName().endsWith(".png"))
+                .filter(this::isPhoto)
                 .map(File::getPath)
                 .flatMapMaybe(path -> {
                     Bitmap bitmap = BitmapFactory.decodeFile(path);
@@ -82,6 +88,22 @@ public class SessionProcessor {
                             .filter(this::hasValidFaces)
                             .map(r -> path);
                 });
+    }
+
+    private List<String> getLoudFiles() {
+        return Stream.of(session.getDirectory().listFiles())
+                .filter(this::isLoudPhoto)
+                .map(File::getPath)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isPhoto(File file) {
+        return file.isFile() && !file.getName().endsWith("-loud.png")
+                && file.getName().endsWith(".png");
+    }
+
+    private boolean isLoudPhoto(File file) {
+        return file.isFile() && file.getName().endsWith("-loud.png");
     }
 
     private Observable<Response> annotateWithCloudVision(Observable<String> files) {

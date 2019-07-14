@@ -13,7 +13,8 @@ public class EmotionClassifier {
         SORROW,
         ANGER,
         SURPRISE,
-        SERIOUS
+        SERIOUS,
+        LOUD
     }
 
     Set<Emotion> extract(Response response) {

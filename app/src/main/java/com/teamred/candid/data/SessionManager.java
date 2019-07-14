@@ -14,11 +14,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
@@ -29,31 +30,37 @@ public class SessionManager {
     private static final String TAG = "SessionManager";
     private static final int CAMERA_SAMPLE_PERIOD = 5;
 
-    private int pictureCount;
+    private AtomicInteger pictureCount;
     private File sessionDirectory;
     private final File rootDirectory;
 
     public SessionManager(File fileDirectory) {
         this.rootDirectory = fileDirectory;
+        this.pictureCount = new AtomicInteger();
     }
 
-    public Observable<File> start(Observable<Bitmap> frames, Observable<Integer> audio) {
+    public Observable<File> start(Observable<Bitmap> frames, Observable<Boolean> audio) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        audio
+        Observable<File> files = frames
+                .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(s -> Log.d(TAG, "audio level " + s));
-
-        return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
+
+        Observable<File> loudFiles = frames
+                .sample(audio)
+                .subscribeOn(Schedulers.newThread())
+                .flatMapSingle(this::saveLoudPhoto)
+                .subscribeOn(Schedulers.io());
+
+        return Observable.merge(files, loudFiles);
     }
 
     public Session end() {
-        pictureCount = 0;
+        pictureCount.set(0);
         return new Session(sessionDirectory);
     }
 
@@ -66,11 +73,19 @@ public class SessionManager {
     }
 
     public int getPictureCount() {
-        return pictureCount;
+        return pictureCount.get();
     }
 
     private Single<File> savePhoto(Bitmap bitmap) {
-        String filename = String.format("%s.png", pictureCount++);
+        return savePhoto(bitmap, "");
+    }
+
+    private Single<File> saveLoudPhoto(Bitmap bitmap) {
+        return savePhoto(bitmap, "-loud");
+    }
+
+    private Single<File> savePhoto(Bitmap bitmap, String suffix) {
+        String filename = String.format("%s%s.png", pictureCount.incrementAndGet(), suffix);
         File file = new File(sessionDirectory, filename);
         try {
             Log.d("SessionManager", "saving image!");
@@ -86,11 +101,13 @@ public class SessionManager {
 
     public static class Session {
         private final File directory;
-        private final File[] pictures;
+        private final List<File> pictures;
 
         public Session(File directory) {
             this.directory = directory;
-            this.pictures = directory.listFiles();
+            this.pictures = Stream.of(directory.listFiles())
+                    .filter(f -> f.isFile() && f.getName().endsWith(".png"))
+                    .collect(Collectors.toList());
         }
 
         public String getDateString() {
@@ -102,11 +119,11 @@ public class SessionManager {
         }
 
         public int getPictureCount() {
-            return pictures.length;
+            return pictures.size();
         }
 
         public File getPreviewPicture() {
-            return pictures.length > 0 ? pictures[0] : null;
+            return pictures.size() > 0 ? pictures.get(0) : null;
         }
 
         public File getDirectory() {

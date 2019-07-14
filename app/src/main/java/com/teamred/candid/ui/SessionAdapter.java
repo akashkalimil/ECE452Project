@@ -14,11 +14,14 @@ import android.widget.TextView;
 import com.teamred.candid.R;
 import com.teamred.candid.data.EmotionClassifier.Emotion;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -50,26 +53,21 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         void onSelectionModeExited();
     }
 
-    private List<Object> unrolledGroups;
-    private final Set<String> selected;
+    private final List<Object> data;
     private final Listener listener;
     private boolean inSelectionMode = false;
+    private final Set<Integer> selectedIndices;
 
     SessionAdapter(Map<Emotion, List<String>> groups, Listener listener) {
         this.listener = listener;
-        this.selected = new HashSet<>();
-        unrolledGroups = new ArrayList<>();
-        for (Map.Entry<Emotion, List<String>> entry : groups.entrySet()) {
-            unrolledGroups.add(entry.getKey());
-            unrolledGroups.addAll(entry.getValue());
-        }
+        this.selectedIndices = new HashSet<>();
+        this.data = unrollClassifications(groups);
     }
 
     @Override
     public int getItemViewType(int position) {
-        return unrolledGroups.get(position) instanceof Emotion ? HEADER : IMAGE;
+        return data.get(position) instanceof Emotion ? HEADER : IMAGE;
     }
-
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int type) {
@@ -85,26 +83,26 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder.getItemViewType() == IMAGE) {
             ViewHolder imageHolder = (ViewHolder) holder;
-            String file = (String) unrolledGroups.get(position);
+            String file = (String) data.get(position);
             Bitmap bitmap = BitmapFactory.decodeFile(file);
             if (!inSelectionMode) {
                 imageHolder.check.setVisibility(View.GONE);
                 setMargin(imageHolder.imageView, 0);
                 imageHolder.imageView.setOnClickListener(null);
             } else {
-                if (selected.contains(file)) { // selected
+                if (selectedIndices.contains(position)) { // selected
                     imageHolder.check.setVisibility(View.VISIBLE);
                     setMargin(imageHolder.imageView, 28);
                     imageHolder.imageView.setOnClickListener(v -> {
-                        selected.remove(file);
-                        if (selected.isEmpty()) exitSelectionMode();
+                        selectedIndices.remove(position);
+                        if (selectedIndices.isEmpty()) exitSelectionMode();
                         else notifyItemChanged(position);
                     });
                 } else { // not selected
                     imageHolder.check.setVisibility(View.GONE);
                     setMargin(imageHolder.imageView, 0);
                     imageHolder.imageView.setOnClickListener(v -> {
-                        selected.add(file);
+                        selectedIndices.add(position);
                         notifyItemChanged(position);
                     });
                 }
@@ -117,13 +115,13 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 inSelectionMode = true;
                 listener.onSelectionModeEntered();
                 notifyDataSetChanged();
-                selected.add(file);
+                selectedIndices.add(position);
 
                 return true;
             });
         } else {
             HeaderHolder header = (HeaderHolder) holder;
-            header.textView.setText(unrolledGroups.get(position).toString());
+            header.textView.setText(data.get(position).toString());
         }
     }
 
@@ -137,17 +135,64 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return unrolledGroups.size();
+        return data.size();
     }
 
-    List<String> getSelectedFiles() {
-        return new ArrayList<>(selected);
+    Set<Integer> getSelectedIndices() {
+        return selectedIndices;
+    }
+
+    Set<File> getSelectedFiles() {
+        return selectedIndices.stream()
+                .map(i -> new File((String) data.get(i)))
+                .collect(Collectors.toSet());
+    }
+
+    void removeAtIndices(Set<Integer> indices) {
+        for (int i : indices) {
+            data.remove(i);
+        }
+        Set<Integer> emptySections = new HashSet<>();
+        for (int i = 0; i < data.size(); i++) {
+            if (data.get(i) instanceof Emotion &&
+                    (i == data.size() - 1 || data.get(i+1) instanceof Emotion)) {
+                emptySections.add(i);
+            }
+        }
+        for (int i : emptySections) {
+            data.remove(i);
+        }
+        notifyDataSetChanged();
+    }
+
+    Map<Emotion, List<String>> getData() {
+        Map<Emotion, List<String>> map = new HashMap<>();
+        Emotion key = null;
+        for (Object o : data) {
+            if (o instanceof Emotion) {
+                key = (Emotion) o;
+                map.put(key, new ArrayList<>());
+            } else {
+                map.get(key).add((String) o);
+            }
+        }
+        return map;
     }
 
     void exitSelectionMode() {
         inSelectionMode = false;
-        selected.clear();
+        selectedIndices.clear();
         notifyDataSetChanged();
         listener.onSelectionModeExited();
+    }
+
+    private List<Object> unrollClassifications(Map<Emotion, List<String>> classifications) {
+        List<Object> list = new ArrayList<>();
+        for (Map.Entry<Emotion, List<String>> entry : classifications.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            list.add(entry.getKey());
+            list.addAll(entry.getValue());
+        }
+        return list;
     }
 }
