@@ -6,7 +6,7 @@ import com.teamred.candid.vision.CloudVision.FaceAnnotation;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EmotionExtractor {
+public class EmotionClassifier {
 
     public enum Emotion {
         JOY,
@@ -15,12 +15,6 @@ public class EmotionExtractor {
         SURPRISE,
         SERIOUS
     }
-
-    private static String LIKELY = "LIKELY";
-    private static String VERY_LIKELY = "VERY_LIKELY";
-
-    private static String UNLIKELY = "UNLIKELY";
-    private static String VERY_UNLIKELY = "VERY_UNLIKELY";
 
     Set<Emotion> extract(Response response) {
         if (response.faceAnnotations == null) return new HashSet<>();
@@ -48,10 +42,10 @@ public class EmotionExtractor {
     }
 
     private static boolean isLikely(String likelihood) {
-        return likelihood.equals(LIKELY) || likelihood.equals(VERY_LIKELY);
+        return likelihood.equals("LIKELY") || likelihood.equals("VERY_LIKELY");
     }
 
     private static boolean isUnlikely(String likelihood) {
-        return likelihood.equals(UNLIKELY) || likelihood.equals(VERY_UNLIKELY);
+        return likelihood.equals("VERY_LIKELY") || likelihood.equals("VERY_UNLIKELY");
     }
 }

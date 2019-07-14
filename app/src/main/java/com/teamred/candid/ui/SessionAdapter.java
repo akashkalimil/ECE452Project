@@ -12,7 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.teamred.candid.R;
-import com.teamred.candid.data.EmotionExtractor.Emotion;
+import com.teamred.candid.data.EmotionClassifier.Emotion;
 
 import java.util.ArrayList;
 import java.util.HashSet;

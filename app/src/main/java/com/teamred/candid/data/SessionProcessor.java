@@ -2,12 +2,11 @@ package com.teamred.candid.data;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.teamred.candid.camera.FaceDetector;
-import com.teamred.candid.data.EmotionExtractor.Emotion;
+import com.teamred.candid.data.EmotionClassifier.Emotion;
 import com.teamred.candid.vision.BatchResponse.Response;
 import com.teamred.candid.vision.CloudVision;
 
@@ -30,25 +29,24 @@ import static com.teamred.candid.data.SessionManager.*;
 
 public class SessionProcessor {
 
-    private static final String GROUPINGS_FILE = "groupings";
-
     private final Session session;
     private final FaceDetector faceDetector;
     private final CloudVision cloudVision;
-    private final EmotionExtractor emotionExtractor;
-    private final File groupings;
+    private final EmotionClassifier emotionClassifier;
+    private final EmotionClassificationStore classificationStore;
 
     public SessionProcessor(Session session) {
         this.session = session;
         faceDetector = new FaceDetector();
         cloudVision = new CloudVision();
-        emotionExtractor = new EmotionExtractor();
-        groupings = new File(session.getDirectory() + File.separator + GROUPINGS_FILE);
-
+        emotionClassifier = new EmotionClassifier();
+        classificationStore = new EmotionClassificationStore(session);
     }
 
     public Single<? extends Map<Emotion, List<String>>> groupByEmotion() {
-        return groupings.exists() ? readGroupings() : computeGroupings();
+        return classificationStore.classificationFileExists()
+                ? classificationStore.read()
+                : computeGroupings();
     }
 
     private Single<Map<Emotion, List<String>>> computeGroupings() {
@@ -58,7 +56,7 @@ public class SessionProcessor {
                 .zip(files, annotations, PathResponse::new)
                 .filter(r -> r.response.hasFaces())
                 .collectInto(new HashMap<Emotion, List<String>>(), (acc, res) -> {
-                    Set<Emotion> emotions = emotionExtractor.extract(res.response);
+                    Set<Emotion> emotions = emotionClassifier.extract(res.response);
                     for (Emotion e : emotions) {
                         if (acc.containsKey(e)) {
                             acc.get(e).add(res.path);
@@ -69,7 +67,7 @@ public class SessionProcessor {
                         }
                     }
                 })
-                .flatMap(this::writeGroupings);
+                .flatMap(classificationStore::write);
     }
 
     private Observable<String> getFilesWithFaces() {
@@ -92,48 +90,6 @@ public class SessionProcessor {
                 .toList()
                 .flatMap(cloudVision::annotateImages)
                 .flatMapObservable(Observable::fromIterable);
-    }
-
-    private Single<Map<Emotion, List<String>>> writeGroupings(Map<Emotion, List<String>> groupings) {
-        return Single.create(emitter -> {
-            try {
-                FileOutputStream out = new FileOutputStream(this.groupings);
-                for (Map.Entry<Emotion, List<String>> entry : groupings.entrySet()) {
-                    StringBuilder row = new StringBuilder();
-                    Emotion e = entry.getKey();
-                    row.append(e).append(",");
-                    List<String> files = entry.getValue();
-                    for (String f : files) row.append(f).append(",");
-                    out.write(row.append("\n").toString().getBytes());
-                }
-                out.flush();
-                out.close();
-                emitter.onSuccess(groupings);
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        });
-    }
-
-    private Single<Map<Emotion, List<String>>> readGroupings() {
-        return Single.create(emitter -> {
-            try {
-                FileInputStream in = new FileInputStream(groupings);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                String line;
-                Map<Emotion, List<String>> groups = new HashMap<>();
-                while ((line = reader.readLine()) != null) {
-                    String[] tokens = line.split(",");
-                    if (tokens.length <= 1) continue;
-                    Emotion e = Emotion.valueOf(tokens[0]);
-                    List<String> files = Arrays.asList(tokens).subList(1, tokens.length);
-                    groups.put(e, files);
-                }
-                emitter.onSuccess(groups);
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        });
     }
 
     private boolean hasValidFaces(FaceDetector.Result res) {

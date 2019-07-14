@@ -13,7 +13,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import com.teamred.candid.R;
-import com.teamred.candid.data.EmotionExtractor.Emotion;
+import com.teamred.candid.data.EmotionClassifier.Emotion;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.data.SessionProcessor;
 

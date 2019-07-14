@@ -114,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void animateCapturedMoment() {
         photoCountTextView.animate().alpha(0).scaleX(.9f).scaleY(.9f).withEndAction(() -> {
-            int count = sessionManager.getPhotoCount();
+            int count = sessionManager.getPictureCount();
             String format = "Captured %s moment" + (count > 1 ? "s" : "");
-            photoCountTextView.setText(String.format(format, sessionManager.getPhotoCount()));
+            photoCountTextView.setText(String.format(format, sessionManager.getPictureCount()));
 
             photoCountTextView.animate().alpha(1).scaleX(1.2f).scaleY(1.2f)
                     .setInterpolator(new AccelerateDecelerateInterpolator())

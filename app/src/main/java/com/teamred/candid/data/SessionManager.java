@@ -29,7 +29,7 @@ public class SessionManager {
     private static final String TAG = "SessionManager";
     private static final int CAMERA_SAMPLE_PERIOD = 5;
 
-    private int photoCount;
+    private int pictureCount;
     private File sessionDirectory;
     private final File rootDirectory;
 
@@ -53,7 +53,7 @@ public class SessionManager {
     }
 
     public Session end() {
-        photoCount = 0;
+        pictureCount = 0;
         return new Session(sessionDirectory);
     }
 
@@ -65,12 +65,12 @@ public class SessionManager {
                 .collect(Collectors.toList());
     }
 
-    public int getPhotoCount() {
-        return photoCount;
+    public int getPictureCount() {
+        return pictureCount;
     }
 
     private Single<File> savePhoto(Bitmap bitmap) {
-        String filename = String.format("%s.png", photoCount++);
+        String filename = String.format("%s.png", pictureCount++);
         File file = new File(sessionDirectory, filename);
         try {
             Log.d("SessionManager", "saving image!");
