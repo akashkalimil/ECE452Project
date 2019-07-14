@@ -28,30 +28,44 @@ public class SessionManager {
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy", Locale.US);
 
     private static final String TAG = "SessionManager";
-    private static final int CAMERA_SAMPLE_PERIOD = 5;
 
     private File sessionDirectory;
     private AtomicInteger pictureCount;
-    private final File rootDirectory;
 
-    public SessionManager(File fileDirectory) {
+    private final File rootDirectory;
+    private final int samplePeriod;
+
+    /**
+     * Creates a new SessionManager instance.
+     *
+     * @param fileDirectory The file system location where session contents will be persisted.
+     * @param samplePeriod  Inverse of the frequency at which the camera will be sampled, in seconds.
+     */
+    public SessionManager(File fileDirectory, int samplePeriod) {
         this.rootDirectory = fileDirectory;
         this.pictureCount = new AtomicInteger();
+        this.samplePeriod = samplePeriod;
     }
 
-    public Observable<File> start(Observable<Bitmap> frames, Observable<Boolean> audio) {
+    /**
+     * Creates a new observable stream which emits File objects corresponding to saved images.
+     * Images are captured at every multiple instance of the sample period in addition to when
+     * peak audio levels are detected from the microphone.
+     *
+     * @param camera     An observable representing a stream of nearly continuous frames from the camera.
+     * @param audioPeaks An observable which emits the value true whenever an audio peak is detected.
+     */
+    public Observable<File> start(Observable<Bitmap> camera, Observable<Boolean> audioPeaks) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        Observable<File> files = frames
-                .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+        Observable<File> files = camera.sample(samplePeriod, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
 
-        Observable<File> loudFiles = frames
-                .sample(audio)
+        Observable<File> loudFiles = camera.sample(audioPeaks)
                 .subscribeOn(Schedulers.newThread())
                 .flatMapSingle(this::saveLoudPhoto)
                 .subscribeOn(Schedulers.io());
