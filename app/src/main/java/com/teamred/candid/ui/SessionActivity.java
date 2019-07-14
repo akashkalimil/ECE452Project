@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -79,17 +78,18 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                     .doOnSuccess(g -> dialog.dismiss())
                     .doOnError(e -> dialog.dismiss())
                     .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
-            classificationStore = new EmotionClassificationStore(session);
 
+            classificationStore = new EmotionClassificationStore(session);
         } else {
             // show default empty session view
+
         }
 
         findViewById(R.id.save).setOnClickListener(this::onSelectionMenuClick);
         findViewById(R.id.upload).setOnClickListener(this::onSelectionMenuClick);
         findViewById(R.id.delete).setOnClickListener(this::onSelectionMenuClick);
-        menuContainer = findViewById(R.id.selection_menu_contaienr);
 
+        menuContainer = findViewById(R.id.selection_menu_contaienr);
     }
 
     private void onSelectionMenuClick(View menuItem) {

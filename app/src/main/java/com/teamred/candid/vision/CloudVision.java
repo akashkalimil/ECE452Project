@@ -74,7 +74,6 @@ public class CloudVision {
                 });
     }
 
-
     public class FaceAnnotation {
         public String joyLikelihood;
         public String sorrowLikelihood;
