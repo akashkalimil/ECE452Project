@@ -1,7 +1,7 @@
 package com.teamred.candid.data;
 
-import com.teamred.candid.data.EmotionClassifier.Emotion;
-import com.teamred.candid.data.SessionManager.Session;
+import com.teamred.candid.model.Emotion;
+import com.teamred.candid.model.Session;
 
 import java.io.BufferedReader;
 import java.io.File;

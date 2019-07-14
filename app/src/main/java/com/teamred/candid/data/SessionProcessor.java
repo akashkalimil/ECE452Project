@@ -4,19 +4,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.teamred.candid.camera.FaceDetector;
-import com.teamred.candid.data.EmotionClassifier.Emotion;
+import com.teamred.candid.model.Emotion;
+import com.teamred.candid.model.Session;
 import com.teamred.candid.vision.BatchResponse.Response;
 import com.teamred.candid.vision.CloudVision;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +21,6 @@ import java.util.stream.Stream;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
-
-import static com.teamred.candid.data.SessionManager.*;
 
 public class SessionProcessor {
 
@@ -115,13 +108,10 @@ public class SessionProcessor {
     }
 
     private boolean hasValidFaces(FaceDetector.Result res) {
-        return res.faces.size() > 0 && res.faces.stream().anyMatch(this::eyesOpen);
+        return res.faces.size() > 0 && res.faces.stream().anyMatch(f ->
+                f.getLeftEyeOpenProbability() >= 0.9 && f.getRightEyeOpenProbability() >= 0.9);
     }
 
-    private boolean eyesOpen(FirebaseVisionFace face) {
-        return face.getLeftEyeOpenProbability() >= 0.9 &&
-                face.getRightEyeOpenProbability() >= 0.9;
-    }
 
     private static class PathResponse {
         final String path;

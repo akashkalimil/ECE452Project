@@ -16,6 +16,7 @@ import com.teamred.candid.camera.AudioProcessor;
 import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
+import com.teamred.candid.model.Session;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -107,20 +108,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void endSession() {
         // Open new activity with collection of photos from this session
-        SessionManager.Session session = sessionManager.end();
+        Session session = sessionManager.end();
         photoCountTextView.setText("");
         startActivity(SessionActivity.newIntent(this, session.getDirectory()));
     }
 
     private void animateCapturedMoment() {
-        photoCountTextView.animate().alpha(0).scaleX(.9f).scaleY(.9f).withEndAction(() -> {
-            int count = sessionManager.getPictureCount();
-            String format = "Captured %s moment" + (count > 1 ? "s" : "");
-            photoCountTextView.setText(String.format(format, sessionManager.getPictureCount()));
+        photoCountTextView.post(() -> {
+            photoCountTextView.animate().alpha(0).scaleX(.9f).scaleY(.9f).withEndAction(() -> {
+                int count = sessionManager.getPictureCount();
+                String format = "Captured %s moment" + (count > 1 ? "s" : "");
+                photoCountTextView.setText(String.format(format, sessionManager.getPictureCount()));
 
-            photoCountTextView.animate().alpha(1).scaleX(1.2f).scaleY(1.2f)
-                    .setInterpolator(new AccelerateDecelerateInterpolator())
-                    .withEndAction(() -> photoCountTextView.animate().scaleX(1).scaleY(1));
+                photoCountTextView.animate().alpha(1).scaleX(1.2f).scaleY(1.2f)
+                        .setInterpolator(new AccelerateDecelerateInterpolator())
+                        .withEndAction(() -> photoCountTextView.animate().scaleX(1).scaleY(1));
+            });
         });
     }
 

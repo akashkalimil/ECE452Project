@@ -14,9 +14,10 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.EmotionClassificationStore;
-import com.teamred.candid.data.EmotionClassifier.Emotion;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.data.SessionProcessor;
+import com.teamred.candid.model.Emotion;
+import com.teamred.candid.model.Session;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -30,8 +31,6 @@ import java.util.Set;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-
-import static com.teamred.candid.data.SessionManager.*;
 
 @SuppressWarnings("deprecation")
 public class SessionActivity extends AppCompatActivity implements SessionAdapter.Listener {

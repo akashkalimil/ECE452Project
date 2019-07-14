@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
-import com.teamred.candid.data.SessionManager.Session;
+import com.teamred.candid.model.Session;
 import com.teamred.candid.vision.CloudVision;
 
 import java.io.File;
@@ -50,7 +50,7 @@ public class SessionListActivity extends AppCompatActivity {
         SessionsAdapter adapter = new SessionsAdapter(sessions);
         recyclerView.setAdapter(adapter);
     }
-
+    
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final ImageView imageView;
         private final TextView dateTextView;

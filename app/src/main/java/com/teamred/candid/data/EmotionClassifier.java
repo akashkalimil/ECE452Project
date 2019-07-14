@@ -1,5 +1,6 @@
 package com.teamred.candid.data;
 
+import com.teamred.candid.model.Emotion;
 import com.teamred.candid.vision.BatchResponse.Response;
 import com.teamred.candid.vision.CloudVision.FaceAnnotation;
 
@@ -7,15 +8,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EmotionClassifier {
-
-    public enum Emotion {
-        JOY,
-        SORROW,
-        ANGER,
-        SURPRISE,
-        SERIOUS,
-        LOUD
-    }
 
     Set<Emotion> extract(Response response) {
         if (response.faceAnnotations == null) return new HashSet<>();
