@@ -13,10 +13,10 @@ public class AudioProcessor {
 
     private static final String TAG = "AudioProcessor";
     private static final int SAMPLE_PERIOD = 500; // 1 second
-    private static int mic_arr[] = new int[10]; //Array that stores 10 audio samples, taken 1 second apart
-    private static int mic_arr_index = 0;
-    private static boolean mic_arr_init = false;
-    private static int peak_cnt = 0;
+    private int micArr[] = new int[10]; //Array that stores 10 audio samples, taken 1 second apart
+    private int micArrIndex = 0;
+    private boolean micArrInit = false;
+    private int peakCnt = 0;
 
     private MediaRecorder recorder;
 
@@ -40,7 +40,7 @@ public class AudioProcessor {
         return Observable
                 .interval(SAMPLE_PERIOD, TimeUnit.MILLISECONDS)
                 .doOnDispose(this::stopRecorder)
-                .map(i -> process_amplitude()) //maxAmplitude is  value associated with interval i
+                .map(i -> processAmplitude()) //maxAmplitude is  value associated with interval i
                 .filter(x->x);
     }
 
@@ -49,56 +49,56 @@ public class AudioProcessor {
         recorder.release();
     }
 
-    public boolean process_amplitude() {
-        int audio_lvl = recorder.getMaxAmplitude();
+    public boolean processAmplitude() {
+        int audioLvl = recorder.getMaxAmplitude();
 
         //Check if first 10 sec of mic array is not full
-        if (!mic_arr_init) {
+        if (!micArrInit) {
             //Add val to mic array
-            mic_arr[mic_arr_index] = audio_lvl;
+            micArr[micArrIndex] = audioLvl;
 
-            if (mic_arr_index >= mic_arr.length - 1) {
+            if (micArrIndex >= micArr.length - 1) {
                 //mic is finished initializing
-                mic_arr_init = true;
+                micArrInit = true;
                 Log.e("a","Mic recorded 10 samples");
             } else {
-                mic_arr_index += 1;
+                micArrIndex += 1;
             }
         }
         else { //Check if value is greater than moving average
             int avg = 0;
             //compute average of all elements
-            for (int i = 0; i < mic_arr.length; i++) {
-                avg += mic_arr[i];
+            for (int i = 0; i < micArr.length; i++) {
+                avg += micArr[i];
             }
 
-            avg = (int)((float) (((float)avg)/((float)mic_arr.length)));
+            avg = (int)((float) (((float)avg)/((float)micArr.length)));
 
-            if (audio_lvl > avg){
-                peak_cnt++;
+            if (audioLvl > avg){
+                peakCnt++;
 
-                if (peak_cnt ==2 ){
+                if (peakCnt ==2 ){
                     Log.e("a","Audio peak detected " +String.valueOf(avg) + " "  + String.valueOf(audio_lvl));
-                    peak_cnt = 0;
+                    peakCnt = 0;
                     return true;
                 }
             }
             else {
-                if (peak_cnt > 0){
-                    peak_cnt--;
+                if (peakCnt > 0){
+                    peakCnt--;
                 }
             }
             Log.e("a", "Audio val " + String.valueOf(avg) + " " + String.valueOf(audio_lvl));
 
             //update array
-            if (mic_arr_index == mic_arr.length - 1){
-                mic_arr_index = 0;
+            if (micArrIndex == micArr.length - 1){
+                micArrIndex = 0;
             }
             else{
-                mic_arr_index+= 1;
+                micArrIndex+= 1;
             }
 
-            mic_arr[mic_arr_index] = audio_lvl;
+            micArr[micArrIndex] = audioLvl;
             }
         return false;
     }
