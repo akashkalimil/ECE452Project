@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -42,11 +44,15 @@ public class SessionManager {
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        audio
-                .subscribeOn(Schedulers.newThread())// setup thread
-                .subscribe(); //start thread
+        Observable<Bitmap> sampled = frames
+                .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.newThread());
 
-        return frames.sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+        Observable<Bitmap> audioSampled = frames
+                .sample(audio)
+                .subscribeOn(Schedulers.newThread());
+
+        return Observable.merge(sampled, audioSampled)
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
     }
@@ -68,7 +74,7 @@ public class SessionManager {
         return pictureCount;
     }
 
-    private Single<File> savePhoto(Bitmap bitmap) {
+    private synchronized Single<File> savePhoto(Bitmap bitmap) {
         String filename = String.format("%s.png", pictureCount++);
         File file = new File(sessionDirectory, filename);
         try {
@@ -85,11 +91,13 @@ public class SessionManager {
 
     public static class Session {
         private final File directory;
-        private final File[] pictures;
+        private final List<File> pictures;
 
         public Session(File directory) {
             this.directory = directory;
-            this.pictures = directory.listFiles();
+            this.pictures = Stream.of(directory.listFiles())
+                    .filter(f -> f.isFile() && f.getName().endsWith(".png"))
+                    .collect(Collectors.toList());
         }
 
         public String getDateString() {
@@ -101,11 +109,11 @@ public class SessionManager {
         }
 
         public int getPictureCount() {
-            return pictures.length;
+            return pictures.size();
         }
 
         public File getPreviewPicture() {
-            return pictures.length > 0 ? pictures[0] : null;
+            return pictures.size() > 0 ? pictures.get(0) : null;
         }
 
         public File getDirectory() {
