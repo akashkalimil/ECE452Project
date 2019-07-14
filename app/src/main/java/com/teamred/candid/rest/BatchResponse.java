@@ -1,4 +1,4 @@
-package com.teamred.candid.vision;
+package com.teamred.candid.rest;
 
 import java.util.List;
 

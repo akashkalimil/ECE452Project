@@ -1,10 +1,10 @@
-package com.teamred.candid.vision;
+package com.teamred.candid.rest;
 
 import android.graphics.Bitmap;
 
 import com.teamred.candid.BuildConfig;
-import com.teamred.candid.vision.BatchRequest.ImageRequest;
-import com.teamred.candid.vision.BatchResponse.Response;
+import com.teamred.candid.rest.BatchRequest.ImageRequest;
+import com.teamred.candid.rest.BatchResponse.Response;
 
 import java.util.ArrayList;
 import java.util.List;

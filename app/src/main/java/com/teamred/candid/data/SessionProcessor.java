@@ -7,16 +7,11 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.teamred.candid.camera.FaceDetector;
 import com.teamred.candid.data.EmotionClassifier.Emotion;
-import com.teamred.candid.vision.BatchResponse.Response;
-import com.teamred.candid.vision.CloudVision;
+import com.teamred.candid.rest.BatchResponse.Response;
+import com.teamred.candid.rest.CloudVision;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

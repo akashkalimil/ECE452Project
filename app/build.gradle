@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 def getKey(String property){
     Properties properties = new Properties()
-    properties.load(new FileInputStream("C:\\Users\\Akash Kalimili\\Desktop\\keys"))
+    properties.load(new FileInputStream("/Users/priyesh/Documents/Candid/keys"))
     return "\"" + properties.getProperty(property) +"\""
 }
 
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\Users\\Akash Kalimili\\Desktop\\debug.keystore')
+            storeFile file('/Users/priyesh/Desktop/debug.keystore')
             storePassword 'candid123'
             keyAlias = 'teamred'
             keyPassword 'candid123'
@@ -32,6 +32,9 @@ android {
         }
         debug {
             buildConfigField "String", "CV_API_KEY", getKey("CloudVisionApiKey")
+            buildConfigField "String", "GP_CLIENT_ID", getKey("GooglePhotosClientId")
+            buildConfigField "String", "GP_CLIENT_SECRET", getKey("GooglePhotosClientSecret")
+
         }
     }
     compileOptions {
