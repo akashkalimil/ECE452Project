@@ -3,6 +3,9 @@ package com.teamred.candid.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -109,7 +112,11 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
 
         switch (menuItem.getId()) {
             case R.id.save:
-                // TODO
+                for (File file : files) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    MediaStore.Images.Media.insertImage(
+                            getContentResolver(), bitmap, file.getName(), "");
+                }
                 break;
             case R.id.upload:
                 // TODO
