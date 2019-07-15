@@ -121,6 +121,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                     MediaStore.Images.Media.insertImage(
                             getContentResolver(), bitmap, file.getName(), "");
                 }
+                Toast.makeText(this, "Saved to gallery", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.upload:
                 Observable.fromIterable(files)
@@ -143,6 +144,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe();
+                Toast.makeText(this, "Finished deleting", Toast.LENGTH_SHORT).show();
                 break;
         }
 
