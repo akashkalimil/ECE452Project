@@ -7,16 +7,17 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.internal.functions.Functions;
 
 public class AudioProcessor {
 
     private static final String TAG = "AudioProcessor";
     private static final int SAMPLE_PERIOD = 500; // 1 second
 
-    private int micArr[] = new int[10]; //Array that stores 10 audio samples, taken 1 second apart
-    private int micArrIndex = 0;
-    private boolean micArrInit = false;
-    private int peakCnt = 0;
+    private int sampleIdx = 0;
+    private int peakCount = 0;
+    private boolean samplesInit = false;
+    private final int[] samples = new int[10]; //Array that stores 10 audio samples, taken 1 second apart
 
     private MediaRecorder recorder;
 
@@ -40,8 +41,8 @@ public class AudioProcessor {
         return Observable
                 .interval(SAMPLE_PERIOD, TimeUnit.MILLISECONDS)
                 .doOnDispose(this::stopRecorder)
-                .map(i -> processAmplitude()) //maxAmplitude is  value associated with interval i
-                .filter(x -> x);
+                .map(i -> isPeak()) //maxAmplitude is  value associated with interval i
+                .filter(isPeak -> isPeak);
     }
 
     private void stopRecorder() {
@@ -49,56 +50,55 @@ public class AudioProcessor {
         recorder.release();
     }
 
-    public boolean processAmplitude() {
+    private boolean isPeak() {
         int audioLvl = recorder.getMaxAmplitude();
 
         //Check if first 10 sec of mic array is not full
-        if (!micArrInit) {
+        if (!samplesInit) {
             //Add val to mic array
-            micArr[micArrIndex] = audioLvl;
+            samples[sampleIdx] = audioLvl;
 
-            if (micArrIndex >= micArr.length - 1) {
+            if (sampleIdx >= samples.length - 1) {
                 //mic is finished initializing
-                micArrInit = true;
+                samplesInit = true;
                 Log.e("a", "Mic recorded 10 samples");
             } else {
-                micArrIndex += 1;
+                sampleIdx += 1;
             }
         } else { //Check if value is greater than moving average
             int avg = 0;
             //compute average of all elements
-            for (int i = 0; i < micArr.length; i++) {
-                avg += micArr[i];
+            for (int i = 0; i < samples.length; i++) {
+                avg += samples[i];
             }
 
-            avg = (int) ((float) (((float) avg) / ((float) micArr.length)));
+            avg = (int) ((float) (((float) avg) / ((float) samples.length)));
 
             if (audioLvl > avg) {
-                peakCnt++;
+                peakCount++;
 
-                if (peakCnt == 2) {
+                if (peakCount == 2) {
                     Log.e("a", "Audio peak detected " + avg + " " + audioLvl);
-                    peakCnt = 0;
+                    peakCount = 0;
                     return true;
                 }
             } else {
-                if (peakCnt > 0) {
-                    peakCnt--;
+                if (peakCount > 0) {
+                    peakCount--;
                 }
             }
             Log.e("a", "Audio val " + avg + " " + audioLvl);
 
             //update array
-            if (micArrIndex == micArr.length - 1) {
-                micArrIndex = 0;
+            if (sampleIdx == samples.length - 1) {
+                sampleIdx = 0;
             } else {
-                micArrIndex += 1;
+                sampleIdx += 1;
             }
 
-            micArr[micArrIndex] = audioLvl;
+            samples[sampleIdx] = audioLvl;
         }
         return false;
     }
-
-
+    
 }
