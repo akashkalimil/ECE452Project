@@ -17,12 +17,12 @@
 
         <Button
             android:id="@+id/start_button"
-            android:onClick="onStartClick"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="?selectableItemBackgroundBorderless"
             android:gravity="center"
+            android:onClick="onStartClick"
             android:text="Start"
             android:textColor="@android:color/white"
             android:textSize="24dp"
@@ -47,33 +47,47 @@
 
     <ImageView
         android:id="@+id/sessions"
-        android:onClick="onSessionsClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
         android:foreground="?selectableItemBackgroundBorderless"
+        android:onClick="onSessionsClick"
         android:src="@drawable/ic_photo_library_black_24dp" />
 
 
     <ImageView
         android:id="@+id/flip_camera"
-        android:onClick="onFlipCameraClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|left"
         android:layout_margin="16dp"
         android:foreground="?selectableItemBackgroundBorderless"
+        android:onClick="onFlipCameraClick"
         android:src="@drawable/ic_camera_front_black_24dp" />
 
 
     <ImageView
         android:id="@+id/flash"
-        android:onClick="onFlashClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
         android:layout_margin="16dp"
         android:foreground="?selectableItemBackgroundBorderless"
+        android:onClick="onFlashClick"
         android:src="@drawable/ic_flash_on_black_24dp" />
+
+    <FrameLayout
+        android:id="@+id/login_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#A6000000">
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/sign_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="onGoogleSignInClick" />
+    </FrameLayout>
 </FrameLayout>

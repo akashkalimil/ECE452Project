@@ -4,19 +4,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.teamred.candid.camera.FaceDetector;
-import com.teamred.candid.data.EmotionClassifier.Emotion;
-import com.teamred.candid.vision.BatchResponse.Response;
-import com.teamred.candid.vision.CloudVision;
+import com.teamred.candid.model.Emotion;
+import com.teamred.candid.model.Session;
+import com.teamred.candid.rest.BatchResponse.Response;
+import com.teamred.candid.rest.CloudVision;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +22,6 @@ import java.util.stream.Stream;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
-import static com.teamred.candid.data.SessionManager.*;
-
 public class SessionProcessor {
 
     private final Session session;
@@ -37,6 +30,7 @@ public class SessionProcessor {
     private final EmotionClassifier emotionClassifier;
     private final EmotionClassificationStore classificationStore;
 
+    // TODO inject this
     public SessionProcessor(Session session) {
         this.session = session;
         faceDetector = new FaceDetector();
@@ -79,31 +73,15 @@ public class SessionProcessor {
     private Observable<String> getFilesWithFaces() {
         return Observable
                 .fromArray(session.getDirectory().listFiles())
-                .filter(this::isPhoto)
+                .filter(SessionProcessor::isPhoto)
                 .map(File::getPath)
                 .flatMapMaybe(path -> {
                     Bitmap bitmap = BitmapFactory.decodeFile(path);
                     FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
                     return faceDetector.detect(image)
-                            .filter(this::hasValidFaces)
+                            .filter(SessionProcessor::hasValidFaces)
                             .map(r -> path);
                 });
-    }
-
-    private List<String> getLoudFiles() {
-        return Stream.of(session.getDirectory().listFiles())
-                .filter(this::isLoudPhoto)
-                .map(File::getPath)
-                .collect(Collectors.toList());
-    }
-
-    private boolean isPhoto(File file) {
-        return file.isFile() && !file.getName().endsWith("-loud.png")
-                && file.getName().endsWith(".png");
-    }
-
-    private boolean isLoudPhoto(File file) {
-        return file.isFile() && file.getName().endsWith("-loud.png");
     }
 
     private Observable<Response> annotateWithCloudVision(Observable<String> files) {
@@ -114,13 +92,25 @@ public class SessionProcessor {
                 .flatMapObservable(Observable::fromIterable);
     }
 
-    private boolean hasValidFaces(FaceDetector.Result res) {
-        return res.faces.size() > 0 && res.faces.stream().anyMatch(this::eyesOpen);
+    private List<String> getLoudFiles() {
+        return Stream.of(session.getDirectory().listFiles())
+                .filter(SessionProcessor::isLoudPhoto)
+                .map(File::getPath)
+                .collect(Collectors.toList());
     }
 
-    private boolean eyesOpen(FirebaseVisionFace face) {
-        return face.getLeftEyeOpenProbability() >= 0.9 &&
-                face.getRightEyeOpenProbability() >= 0.9;
+    private static boolean isPhoto(File file) {
+        return file.isFile() && !file.getName().endsWith("-loud.png")
+                && file.getName().endsWith(".png");
+    }
+
+    private static boolean isLoudPhoto(File file) {
+        return file.isFile() && file.getName().endsWith("-loud.png");
+    }
+
+    private static boolean hasValidFaces(FaceDetector.Result res) {
+        return res.faces.size() > 0 && res.faces.stream().anyMatch(f ->
+                f.getLeftEyeOpenProbability() >= 0.9 && f.getRightEyeOpenProbability() >= 0.9);
     }
 
     private static class PathResponse {

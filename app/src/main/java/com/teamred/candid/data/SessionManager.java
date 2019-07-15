@@ -3,6 +3,8 @@ package com.teamred.candid.data;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.teamred.candid.model.Session;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
@@ -16,7 +18,6 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -24,34 +25,47 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
 
+    private static final int CAMERA_SAMPLE_PERIOD = 3;
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy", Locale.US);
-    private static final DateFormat VISIBLE_DATE_FORMAT = new SimpleDateFormat("MMMM dd", Locale.US);
 
     private static final String TAG = "SessionManager";
-    private static final int CAMERA_SAMPLE_PERIOD = 5;
 
-    private AtomicInteger pictureCount;
     private File sessionDirectory;
-    private final File rootDirectory;
+    private AtomicInteger pictureCount;
 
+    private final File rootDirectory;
+    private final int samplePeriod;
+
+    /**
+     * Creates a new SessionManager instance.
+     *
+     * @param fileDirectory The file system location where session contents will be persisted.
+     */
     public SessionManager(File fileDirectory) {
         this.rootDirectory = fileDirectory;
         this.pictureCount = new AtomicInteger();
+        this.samplePeriod = CAMERA_SAMPLE_PERIOD;
     }
 
-    public Observable<File> start(Observable<Bitmap> frames, Observable<Boolean> audio) {
+    /**
+     * Creates a new observable stream which emits File objects corresponding to saved images.
+     * Images are captured at every multiple instance of the sample period in addition to when
+     * peak audio levels are detected from the microphone.
+     *
+     * @param camera     An observable representing a stream of nearly continuous frames from the camera.
+     * @param audioPeaks An observable which emits the value true whenever an audio peak is detected.
+     */
+    public Observable<File> start(Observable<Bitmap> camera, Observable<Boolean> audioPeaks) {
         String sessionName = DATE_FORMAT.format(new Date());
         sessionDirectory = new File(rootDirectory, sessionName);
         sessionDirectory.mkdir();
 
-        Observable<File> files = frames
-                .sample(CAMERA_SAMPLE_PERIOD, TimeUnit.SECONDS)
+        Observable<File> files = camera.sample(samplePeriod, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .flatMapSingle(this::savePhoto)
                 .subscribeOn(Schedulers.io());
 
-        Observable<File> loudFiles = frames
-                .sample(audio)
+        Observable<File> loudFiles = camera.sample(audioPeaks)
                 .subscribeOn(Schedulers.newThread())
                 .flatMapSingle(this::saveLoudPhoto)
                 .subscribeOn(Schedulers.io());
@@ -99,42 +113,11 @@ public class SessionManager {
         }
     }
 
-    public static class Session {
-        private final File directory;
-        private final List<File> pictures;
-
-        public Session(File directory) {
-            this.directory = directory;
-            this.pictures = Stream.of(directory.listFiles())
-                    .filter(f -> f.isFile() && f.getName().endsWith(".png"))
-                    .collect(Collectors.toList());
-        }
-
-        public String getDateString() {
-            try {
-                return VISIBLE_DATE_FORMAT.format(DATE_FORMAT.parse(directory.getName()));
-            } catch (ParseException e) {
-                return null;
-            }
-        }
-
-        public int getPictureCount() {
-            return pictures.size();
-        }
-
-        public File getPreviewPicture() {
-            return pictures.size() > 0 ? pictures.get(0) : null;
-        }
-
-        public File getDirectory() {
-            return directory;
-        }
-    }
 
     private static final Comparator<Session> SessionDateComparator = (a, b) -> {
         try {
-            Date dateA = DATE_FORMAT.parse(a.directory.getName());
-            Date dateB = DATE_FORMAT.parse(b.directory.getName());
+            Date dateA = DATE_FORMAT.parse(a.getDirectory().getName());
+            Date dateB = DATE_FORMAT.parse(b.getDirectory().getName());
             return dateB.compareTo(dateA);
         } catch (ParseException e) {
             return 0;

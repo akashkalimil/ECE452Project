@@ -3,6 +3,9 @@ package com.teamred.candid.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -11,12 +14,15 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Toast;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.EmotionClassificationStore;
-import com.teamred.candid.data.EmotionClassifier.Emotion;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.data.SessionProcessor;
+import com.teamred.candid.model.Emotion;
+import com.teamred.candid.model.Session;
+import com.teamred.candid.rest.GooglePhotos;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -30,13 +36,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Set;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-
-import static com.teamred.candid.data.SessionManager.*;
-
-
 
 @SuppressWarnings("deprecation")
 public class SessionActivity extends AppCompatActivity implements SessionAdapter.Listener {
@@ -57,6 +60,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
     private View menuContainer;
     private Disposable dispose;
     private EmotionClassificationStore classificationStore;
+    private GooglePhotos googlePhotos = new GooglePhotos();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +93,10 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
             Observable.interval(2, TimeUnit.SECONDS)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(i -> {
-                        int j = atomicInteger.getAndIncrement();
-                        dialog.setMessage(dialogMsg[j]);
+                        if (i == dialogMsg.length) {
+                            atomicInteger.set(0);
+                        }
+                        dialog.setMessage(dialogMsg[atomicInteger.getAndIncrement()]);
                     });
             classificationStore = new EmotionClassificationStore(session);
         } else {
@@ -110,10 +116,26 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
 
         switch (menuItem.getId()) {
             case R.id.save:
-                // TODO
+                for (File file : files) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    MediaStore.Images.Media.insertImage(
+                            getContentResolver(), bitmap, file.getName(), "");
+                }
+                Toast.makeText(this, "Saved to gallery", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.upload:
-                // TODO
+                Observable.fromIterable(files)
+                        .flatMapSingle(f -> googlePhotos.upload(f, this))
+                        .toList()
+                        .flatMap(tokens -> googlePhotos.batchCreate(tokens, this))
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(res -> {
+                            Toast.makeText(this, "Uploaded to Google Photos", Toast.LENGTH_SHORT).show();
+                        }, err -> {
+                            err.printStackTrace();
+                            Toast.makeText(this, "Failed upload to Google Photos", Toast.LENGTH_SHORT).show();
+                        });
                 break;
             case R.id.delete:
                 for (File file : files) file.delete();
@@ -122,6 +144,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe();
+                Toast.makeText(this, "Finished deleting", Toast.LENGTH_SHORT).show();
                 break;
         }
 
