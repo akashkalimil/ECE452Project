@@ -1,8 +1,8 @@
 package com.teamred.candid.data;
 
 import com.teamred.candid.model.Emotion;
-import com.teamred.candid.vision.BatchResponse.Response;
-import com.teamred.candid.vision.CloudVision.FaceAnnotation;
+import com.teamred.candid.rest.BatchResponse.Response;
+import com.teamred.candid.rest.CloudVision.FaceAnnotation;
 
 import java.util.HashSet;
 import java.util.Set;

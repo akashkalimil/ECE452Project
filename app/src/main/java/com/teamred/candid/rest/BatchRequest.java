@@ -1,4 +1,4 @@
-package com.teamred.candid.vision;
+package com.teamred.candid.rest;
 
 import android.graphics.Bitmap;
 import android.util.Base64;

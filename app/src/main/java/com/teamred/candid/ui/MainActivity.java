@@ -10,23 +10,28 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
 import com.otaliastudios.cameraview.CameraView;
 import com.otaliastudios.cameraview.Facing;
 import com.otaliastudios.cameraview.Flash;
 import com.teamred.candid.camera.AudioProcessor;
 import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
+import com.teamred.candid.data.GoogleAuthManager;
 import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.model.Session;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
-@SuppressWarnings("deprecation")
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CandidMain";
+    private static final int RC_SIGN_IN = 512;
 
     private Disposable dispose;
     private CameraView cameraView;
@@ -35,8 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private Button startButton;
     private TextView photoCountTextView;
     private View overlay;
+    private View loginOverlay;
 
     private boolean sessionInProgress = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +59,43 @@ public class MainActivity extends AppCompatActivity {
 
         startButton = findViewById(R.id.start_button);
         overlay = findViewById(R.id.overlay);
+        loginOverlay = findViewById(R.id.login_overlay);
         photoCountTextView = findViewById(R.id.photo_count);
 
-        sessionManager = new SessionManager(getFilesDir(), 5);
+        sessionManager = new SessionManager(getFilesDir());
+
+        GoogleAuthManager.getInstance(this)
+                .authenticateWithLastSignedIn(this)
+                .subscribe(token -> {
+                    Log.d(TAG, "Successfully signed into Google");
+                    hideLoginOverlay();
+                }, Throwable::printStackTrace);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            GoogleAuthManager.getInstance(this)
+                    .authenticateSignInResult(task)
+                    .subscribe(token -> {
+                        Log.d(TAG, "Successfully signed into Google");
+                        hideLoginOverlay();
+                    }, err -> {
+                        Log.e(TAG, "Failed to login to Google");
+                        Toast.makeText(this, "Google sign-in failed!", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void hideLoginOverlay() {
+        loginOverlay.setVisibility(View.GONE);
+    }
+
+    public void onGoogleSignInClick(View v) {
+        Intent intent = GoogleAuthManager.getInstance(this).createSignInIntent();
+        startActivityForResult(intent, RC_SIGN_IN);
     }
 
     public void onStartClick(View v) {

@@ -25,6 +25,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
 
+    private static final int CAMERA_SAMPLE_PERIOD = 3;
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy", Locale.US);
 
     private static final String TAG = "SessionManager";
@@ -39,12 +40,11 @@ public class SessionManager {
      * Creates a new SessionManager instance.
      *
      * @param fileDirectory The file system location where session contents will be persisted.
-     * @param samplePeriod  Inverse of the frequency at which the camera will be sampled, in seconds.
      */
-    public SessionManager(File fileDirectory, int samplePeriod) {
+    public SessionManager(File fileDirectory) {
         this.rootDirectory = fileDirectory;
         this.pictureCount = new AtomicInteger();
-        this.samplePeriod = samplePeriod;
+        this.samplePeriod = CAMERA_SAMPLE_PERIOD;
     }
 
     /**

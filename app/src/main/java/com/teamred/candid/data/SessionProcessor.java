@@ -7,8 +7,8 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.teamred.candid.camera.FaceDetector;
 import com.teamred.candid.model.Emotion;
 import com.teamred.candid.model.Session;
-import com.teamred.candid.vision.BatchResponse.Response;
-import com.teamred.candid.vision.CloudVision;
+import com.teamred.candid.rest.BatchResponse.Response;
+import com.teamred.candid.rest.CloudVision;
 
 import java.io.File;
 import java.util.ArrayList;
