@@ -11,20 +11,15 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-public class CloudVision {
+public class CloudVision extends RestApiClient<CloudVision.Service> {
 
-    private static final String BASE_URL = "https://vision.googleapis.com/v1/";
     private static final String KEY = BuildConfig.CV_API_KEY;
+    private static final int IMAGES_PER_BATCH = 4;
 
     interface Service {
 
@@ -36,28 +31,14 @@ public class CloudVision {
         );
     }
 
-    private final Service service;
-
     public CloudVision() {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(interceptor)
-                .build();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(client)
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build();
-
-        service = retrofit.create(Service.class);
+        super(Service.class);
     }
 
-    // Cloud vision max payload is 10MB
-    // Each photo is around 1.5-2MB, so sending 4 * 2 = 8MB should be safe
-    private static final int IMAGES_PER_BATCH = 4;
+    @Override
+    String baseUrl() {
+        return "https://vision.googleapis.com/v1/";
+    }
 
     public Single<List<Response>> annotateImages(List<Bitmap> bitmaps) {
         return Observable.fromIterable(bitmaps)
