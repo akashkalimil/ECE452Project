@@ -1,5 +1,6 @@
 package com.teamred.candid.ui;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,10 +33,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CandidMain";
     private static final int RC_SIGN_IN = 512;
+    private static final Flash[] FLASH_MODES = {Flash.OFF, Flash.ON, Flash.AUTO};
 
     private Disposable dispose;
     private CameraView cameraView;
     private SessionManager sessionManager;
+    private int flashMode;
 
     private Button startButton;
     private TextView photoCountTextView;
@@ -68,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         sessionManager = new SessionManager(getFilesDir());
     }
 
+    @SuppressLint("CheckResult")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -110,11 +114,7 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
 
             Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    dialog.dismiss();
-                }
-            }, 5000);
+            handler.postDelayed(dialog::dismiss, 5000);
             startButton.animate().setStartDelay(200).alpha(0).withEndAction(() -> {
                 startButton.setText("End");
                 startButton.animate().alpha(1);
@@ -130,8 +130,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onFlashClick(View v) {
-        Flash flash = cameraView.getFlash();
-        cameraView.setFlash(flash == Flash.OFF ? Flash.ON : Flash.OFF);
+        if (flashMode == FLASH_MODES.length - 1) flashMode = 0;
+        Flash flash = Flash.values()[flashMode++];
+        cameraView.setFlash(flash);
     }
 
     public void onFlipCameraClick(View v) {
