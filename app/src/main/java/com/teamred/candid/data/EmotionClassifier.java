@@ -47,6 +47,6 @@ public class EmotionClassifier {
     }
 
     private static boolean isUnlikely(String likelihood) {
-        return likelihood.equals("VERY_LIKELY") || likelihood.equals("VERY_UNLIKELY");
+        return likelihood.equals("UNLIKELY") || likelihood.equals("VERY_UNLIKELY");
     }
 }
