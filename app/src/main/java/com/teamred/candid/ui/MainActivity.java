@@ -44,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean sessionInProgress = false;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,15 +60,12 @@ public class MainActivity extends AppCompatActivity {
         overlay = findViewById(R.id.overlay);
         loginOverlay = findViewById(R.id.login_overlay);
         photoCountTextView = findViewById(R.id.photo_count);
+        findViewById(R.id.sign_in_button).setOnClickListener(v -> {
+            Intent intent = GoogleAuthManager.getInstance(this).createSignInIntent();
+            startActivityForResult(intent, RC_SIGN_IN);
+        });
 
         sessionManager = new SessionManager(getFilesDir());
-
-        GoogleAuthManager.getInstance(this)
-                .authenticateWithLastSignedIn(this)
-                .subscribe(token -> {
-                    Log.d(TAG, "Successfully signed into Google");
-                    hideLoginOverlay();
-                }, Throwable::printStackTrace);
     }
 
     @Override
@@ -79,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             GoogleAuthManager.getInstance(this)
                     .authenticateSignInResult(task)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(token -> {
                         Log.d(TAG, "Successfully signed into Google");
                         hideLoginOverlay();
@@ -91,11 +88,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void hideLoginOverlay() {
         loginOverlay.setVisibility(View.GONE);
-    }
-
-    public void onGoogleSignInClick(View v) {
-        Intent intent = GoogleAuthManager.getInstance(this).createSignInIntent();
-        startActivityForResult(intent, RC_SIGN_IN);
     }
 
     public void onStartClick(View v) {

@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Toast;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.EmotionClassificationStore;
@@ -21,6 +22,7 @@ import com.teamred.candid.data.SessionManager;
 import com.teamred.candid.data.SessionProcessor;
 import com.teamred.candid.model.Emotion;
 import com.teamred.candid.model.Session;
+import com.teamred.candid.rest.GooglePhotos;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Set;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -57,6 +60,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
     private View menuContainer;
     private Disposable dispose;
     private EmotionClassificationStore classificationStore;
+    private GooglePhotos googlePhotos = new GooglePhotos();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +123,18 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                 }
                 break;
             case R.id.upload:
-                // TODO
+                Observable.fromIterable(files)
+                        .flatMapSingle(f -> googlePhotos.upload(f, this))
+                        .toList()
+                        .flatMap(tokens -> googlePhotos.batchCreate(tokens, this))
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(res -> {
+                            Toast.makeText(this, "Uploaded to Google Photos", Toast.LENGTH_SHORT).show();
+                        }, err -> {
+                            err.printStackTrace();
+                            Toast.makeText(this, "Failed upload to Google Photos", Toast.LENGTH_SHORT).show();
+                        });
                 break;
             case R.id.delete:
                 for (File file : files) file.delete();

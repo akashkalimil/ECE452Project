@@ -5,10 +5,11 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
-public abstract class RestApiClient<T> {
+abstract class RestApiClient<T> {
 
-    protected final T service;
+    final T service;
 
     RestApiClient(Class<T> serviceDefinition) {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
@@ -20,6 +21,7 @@ public abstract class RestApiClient<T> {
         Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
                 .baseUrl(baseUrl())
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();

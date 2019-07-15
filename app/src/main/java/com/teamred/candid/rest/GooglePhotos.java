@@ -113,8 +113,8 @@ public class GooglePhotos extends RestApiClient<GooglePhotos.Service> {
         }
     }
 
-    class MediaItemsResponses {
-        List<MediaItemResponse> newMediaItemResults;
+    public class MediaItemsResponses {
+        public List<MediaItemResponse> newMediaItemResults;
     }
 
     class MediaItemResponse {
