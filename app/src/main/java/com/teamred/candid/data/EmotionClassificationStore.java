@@ -50,7 +50,7 @@ public class EmotionClassificationStore {
         });
     }
 
-    public Single<Map<Emotion, List<String>>> read() {
+    Single<Map<Emotion, List<String>>> read() {
         return Single.create(emitter -> {
             try {
                 FileInputStream in = new FileInputStream(classifications);

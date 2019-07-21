@@ -33,14 +33,14 @@ public class GoogleAuthManager {
     private static GoogleAuthManager instance;
 
     public static GoogleAuthManager getInstance(Context context) {
-        return instance == null ? instance = new GoogleAuthManager(context, UserManager.getInstance(context.getFilesDir())) : instance;
+        return instance == null ? instance = new GoogleAuthManager(context) : instance;
     }
 
     private Optional<String> token = Optional.empty();
     private final GoogleSignInClient googleClient;
     private final UserManager userManager;
 
-    private GoogleAuthManager(Context context, UserManager userManager) {
+    private GoogleAuthManager(Context context) {
         GoogleSignInOptions options = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -51,7 +51,7 @@ public class GoogleAuthManager {
                 .build();
 
         this.googleClient = GoogleSignIn.getClient(context, options);
-        this.userManager = userManager;
+        this.userManager = UserManager.getInstance(context.getFilesDir());
     }
 
     public boolean isAuthenticated() {
@@ -65,8 +65,8 @@ public class GoogleAuthManager {
     public Single<String> authenticateSignInResult(Task<GoogleSignInAccount> signInResult) {
         try {
             GoogleSignInAccount account = signInResult.getResult(ApiException.class);
-            return getTokenForAccount(account).doOnSuccess(t ->
-                    userManager.setCurrentUser(account.getEmail()));
+            return getTokenForAccount(account)
+                    .doOnSuccess(t -> userManager.setCurrentUser(account.getEmail()));
         } catch (ApiException e) {
             return Single.error(e);
         }

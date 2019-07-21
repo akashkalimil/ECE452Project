@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
-import com.teamred.candid.data.UserManager;
 import com.teamred.candid.model.Session;
 
 import java.io.File;

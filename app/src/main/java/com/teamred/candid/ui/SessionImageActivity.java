@@ -12,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.teamred.candid.R;
-import com.teamred.candid.model.Emotion;
 
 import java.io.File;
 
@@ -50,14 +49,10 @@ public class SessionImageActivity extends AppCompatActivity {
     }
 
     public void onShareClick(View v) {
-        Intent i = new Intent(Intent.ACTION_SEND, FileProvider.getUriForFile(this, FILE_AUTHORITY, image))
+        Uri uri = FileProvider.getUriForFile(this, FILE_AUTHORITY, image);
+        Intent intent = new Intent(Intent.ACTION_SEND, uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .setType("image/png");
-        startActivity(Intent.createChooser(i, "Shared from Candid!"));
-//        Intent shareIntent = new Intent();
-//        shareIntent.setAction(Intent.ACTION_SEND);
-//        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(image));
-//        shareIntent.setType("image/png");
-//        startActivity(Intent.createChooser(shareIntent, "Shared from Candid!"));
+        startActivity(Intent.createChooser(intent, "Shared from Candid!"));
     }
 }

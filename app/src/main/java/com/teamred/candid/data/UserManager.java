@@ -2,14 +2,14 @@ package com.teamred.candid.data;
 
 import java.io.File;
 
-public class UserManager {
+class UserManager {
 
     private String userHash;
     private final File root;
 
     private static UserManager instance;
 
-    public static UserManager getInstance(File root) {
+    static UserManager getInstance(File root) {
         return instance == null ? instance = new UserManager(root) : instance;
     }
 

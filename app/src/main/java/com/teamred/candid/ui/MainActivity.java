@@ -24,7 +24,6 @@ import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
 import com.teamred.candid.data.GoogleAuthManager;
 import com.teamred.candid.data.SessionManager;
-import com.teamred.candid.data.UserManager;
 import com.teamred.candid.model.Session;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;

@@ -42,18 +42,17 @@ import io.reactivex.schedulers.Schedulers;
 @SuppressWarnings("deprecation")
 public class SessionActivity extends AppCompatActivity implements SessionAdapter.Listener {
 
+    private static final String TAG = "SessionActivity";
+
     private static final int NUM_COLUMNS = 3;
+    private static final String SESSION_DIR = "sessionDir";
+    private static final DateFormat DATE_FORMAT =
+            new SimpleDateFormat("MMMM dd, yyyy 'at' h:mm a", Locale.US);
 
     static Intent newIntent(Context context, File sessionDirectory) {
         return new Intent(context, SessionActivity.class)
                 .putExtra(SESSION_DIR, sessionDirectory);
     }
-
-
-    private static final String TAG = "ViewSession";
-    private static final String SESSION_DIR = "sessionDir";
-
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy 'at' h:mm a", Locale.US);
 
     private File sessionDirectory;
     private SessionAdapter adapter;
@@ -72,41 +71,36 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         String title = getDisplayDate(sessionDirectory.getName());
         getSupportActionBar().setTitle(title);
 
-        File[] files = sessionDirectory.listFiles();
+        final File[] files = sessionDirectory.listFiles();
         Log.d(TAG, "Found images for the session: " + files.length);
 
-        if (files.length > 0) {
-            ProgressDialog dialog = new ProgressDialog(this);
-            dialog.setCancelable(false);
-            dialog.setMessage("Analyzing photos...");
+        if (files.length == 0) return;
 
-            Session session = new Session(sessionDirectory);
-            SessionProcessor processor = new SessionProcessor(session);
-            dispose = processor.groupByEmotion()
-                    .subscribeOn(Schedulers.computation())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnSubscribe(d -> dialog.show())
-                    .doOnSuccess(g -> dialog.dismiss())
-                    .doOnError(e -> dialog.dismiss())
-                    .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setCancelable(false);
+        dialog.setMessage("Analyzing photos...");
 
-            Handler handler = new Handler();
-            handler.postDelayed(() -> dialog.setMessage("Analyzing audio..."), 3000);
-            handler.postDelayed(() -> dialog.setMessage("Classifying emotions..."), 6000);
-            handler.postDelayed(() -> dialog.setMessage("Grouping photos..."), 9000);
-            classificationStore = new EmotionClassificationStore(session);
-        } else {
-            // show default empty session view
+        Session session = new Session(sessionDirectory);
+        SessionProcessor processor = new SessionProcessor(session);
+        classificationStore = new EmotionClassificationStore(session);
 
-        }
-        findViewById(R.id.save).setOnClickListener(this::onSelectionMenuClick);
-        findViewById(R.id.upload).setOnClickListener(this::onSelectionMenuClick);
-        findViewById(R.id.delete).setOnClickListener(this::onSelectionMenuClick);
+        dispose = processor.groupByEmotion()
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(d -> dialog.show())
+                .doOnSuccess(g -> dialog.dismiss())
+                .doOnError(e -> dialog.dismiss())
+                .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
+
+        Handler handler = new Handler();
+        handler.postDelayed(() -> dialog.setMessage("Analyzing audio..."), 3000);
+        handler.postDelayed(() -> dialog.setMessage("Classifying emotions..."), 6000);
+        handler.postDelayed(() -> dialog.setMessage("Grouping photos..."), 9000);
 
         menuContainer = findViewById(R.id.selection_menu_contaienr);
     }
 
-    private void onSelectionMenuClick(View menuItem) {
+    public void onSelectionMenuClick(View menuItem) {
         Set<Integer> indices = adapter.getSelectedIndices();
         Set<File> files = adapter.getSelectedFiles();
 
