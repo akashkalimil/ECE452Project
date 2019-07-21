@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "CandidMain";
     private static final int RC_SIGN_IN = 512;
-    private static final Flash[] FLASH_MODES = {Flash.OFF, Flash.ON, Flash.AUTO};
+    private static final Flash[] FLASH_MODES = {Flash.OFF, Flash.TORCH};
 
     private Disposable dispose;
     private CameraView cameraView;
@@ -131,9 +131,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onFlashClick(View v) {
-        if (flashMode == FLASH_MODES.length - 1) flashMode = 0;
-        Flash flash = Flash.values()[flashMode++];
-        cameraView.setFlash(flash);
+        flashMode = flashMode == 0 ? 1 : 0;
+        cameraView.setFlash(FLASH_MODES[flashMode]);
     }
 
     public void onFlipCameraClick(View v) {

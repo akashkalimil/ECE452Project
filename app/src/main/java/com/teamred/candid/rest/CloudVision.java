@@ -41,7 +41,8 @@ public class CloudVision extends RestApiClient<CloudVision.Service> {
     }
 
     public Single<List<Response>> annotateImages(List<Bitmap> bitmaps) {
-        return Observable.fromIterable(bitmaps)
+        return Observable
+                .fromIterable(bitmaps)
                 .map(ImageRequest::new)
                 .buffer(IMAGES_PER_BATCH)
                 .concatMapSingle(requests -> service.annotateImage(KEY, new BatchRequest(requests)))

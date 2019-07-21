@@ -79,6 +79,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
             ProgressDialog dialog = new ProgressDialog(this);
             dialog.setCancelable(false);
             dialog.setMessage("Analyzing photos...");
+
             Session session = new Session(sessionDirectory);
             SessionProcessor processor = new SessionProcessor(session);
             dispose = processor.groupByEmotion()
