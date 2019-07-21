@@ -77,17 +77,39 @@
         android:onClick="onFlashClick"
         android:src="@drawable/ic_flash_on_black_24dp" />
 
-    <FrameLayout
+    <LinearLayout
         android:id="@+id/login_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#A6000000">
+        android:background="#E8000000"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="sans-serif-light"
+            android:padding="12dp"
+            android:text="Candid"
+            android:textColor="@android:color/white"
+            android:textSize="48dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:text="Please sign-in below to get started."
+            android:textColor="@android:color/white"
+            android:textSize="16dp" />
 
         <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="onGoogleSignInClick" />
-    </FrameLayout>
+            android:onClick="onGoogleSignInClick"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp" />
+    </LinearLayout>
 </FrameLayout>
