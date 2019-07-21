@@ -6,6 +6,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -20,9 +21,13 @@ public class Session {
 
     public Session(File directory) {
         this.directory = directory;
-        this.pictures = Stream.of(directory.listFiles())
-                .filter(f -> f.isFile() && f.getName().endsWith(".png"))
-                .collect(Collectors.toList());
+        if (directory.listFiles().length > 0) {
+            this.pictures = Stream.of(directory.listFiles())
+                    .filter(f -> f.isFile() && f.getName().endsWith(".png"))
+                    .collect(Collectors.toList());
+        } else {
+            this.pictures = new ArrayList<>();
+        }
     }
 
     public String getDateString() {

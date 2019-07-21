@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.teamred.candid.R;
 import com.teamred.candid.data.SessionManager;
+import com.teamred.candid.data.UserManager;
 import com.teamred.candid.model.Session;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class SessionListActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        sessionManager = new SessionManager(getFilesDir());
+        sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
     }
 
     @Override

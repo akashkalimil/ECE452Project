@@ -33,13 +33,14 @@ public class GoogleAuthManager {
     private static GoogleAuthManager instance;
 
     public static GoogleAuthManager getInstance(Context context) {
-        return instance == null ? instance = new GoogleAuthManager(context) : instance;
+        return instance == null ? instance = new GoogleAuthManager(context, UserManager.getInstance(context.getFilesDir())) : instance;
     }
 
     private Optional<String> token = Optional.empty();
-    private GoogleSignInClient googleClient;
+    private final GoogleSignInClient googleClient;
+    private final UserManager userManager;
 
-    private GoogleAuthManager(Context context) {
+    private GoogleAuthManager(Context context, UserManager userManager) {
         GoogleSignInOptions options = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -49,7 +50,8 @@ public class GoogleAuthManager {
                 .requestServerAuthCode(BuildConfig.GP_CLIENT_ID, true)
                 .build();
 
-        googleClient = GoogleSignIn.getClient(context, options);
+        this.googleClient = GoogleSignIn.getClient(context, options);
+        this.userManager = userManager;
     }
 
     public boolean isAuthenticated() {
@@ -60,15 +62,11 @@ public class GoogleAuthManager {
         return token.orElse(null);
     }
 
-    public Single<String> authenticateWithLastSignedIn(Context context) {
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
-        return getTokenForAccount(account);
-    }
-
     public Single<String> authenticateSignInResult(Task<GoogleSignInAccount> signInResult) {
         try {
             GoogleSignInAccount account = signInResult.getResult(ApiException.class);
-            return getTokenForAccount(account);
+            return getTokenForAccount(account).doOnSuccess(t ->
+                    userManager.setCurrentUser(account.getEmail()));
         } catch (ApiException e) {
             return Single.error(e);
         }

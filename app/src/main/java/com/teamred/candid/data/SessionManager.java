@@ -25,15 +25,15 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SessionManager {
 
+    private static final String TAG = "SessionManager";
+
     private static final int CAMERA_SAMPLE_PERIOD = 3;
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss_dd_MM_yy", Locale.US);
-
-    private static final String TAG = "SessionManager";
 
     private File sessionDirectory;
     private AtomicInteger pictureCount;
 
-    private final File rootDirectory;
+    private final File root;
     private final int samplePeriod;
 
     /**
@@ -41,8 +41,8 @@ public class SessionManager {
      *
      * @param fileDirectory The file system location where session contents will be persisted.
      */
-    public SessionManager(File fileDirectory) {
-        this.rootDirectory = fileDirectory;
+    public SessionManager(UserManager userManager) {
+        this.root = userManager.getCurrentUserDirectory();
         this.pictureCount = new AtomicInteger();
         this.samplePeriod = CAMERA_SAMPLE_PERIOD;
     }
@@ -57,7 +57,7 @@ public class SessionManager {
      */
     public Observable<File> start(Observable<Bitmap> camera, Observable<Boolean> audioPeaks) {
         String sessionName = DATE_FORMAT.format(new Date());
-        sessionDirectory = new File(rootDirectory, sessionName);
+        sessionDirectory = new File(root, sessionName);
         sessionDirectory.mkdir();
 
         Observable<File> files = camera.sample(samplePeriod, TimeUnit.SECONDS)
@@ -79,7 +79,7 @@ public class SessionManager {
     }
 
     public List<Session> getSessions() {
-        return Arrays.stream(rootDirectory.listFiles())
+        return Arrays.stream(root.listFiles())
                 .map(Session::new)
                 .filter(s -> s.getPictureCount() > 0)
                 .sorted(SessionDateComparator)
@@ -102,7 +102,7 @@ public class SessionManager {
         String filename = String.format("%s%s.png", pictureCount.incrementAndGet(), suffix);
         File file = new File(sessionDirectory, filename);
         try {
-            Log.d("SessionManager", "saving image!");
+            Log.d(TAG, "saving image!");
             FileOutputStream out = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();

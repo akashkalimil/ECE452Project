@@ -24,6 +24,7 @@ import com.teamred.candid.camera.BitmapProcessor;
 import com.teamred.candid.R;
 import com.teamred.candid.data.GoogleAuthManager;
 import com.teamred.candid.data.SessionManager;
+import com.teamred.candid.data.UserManager;
 import com.teamred.candid.model.Session;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -67,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = GoogleAuthManager.getInstance(this).createSignInIntent();
             startActivityForResult(intent, RC_SIGN_IN);
         });
-
-        sessionManager = new SessionManager(getFilesDir());
     }
 
     @SuppressLint("CheckResult")
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     .subscribe(token -> {
                         Log.d(TAG, "Successfully signed into Google");
                         hideLoginOverlay();
+                        sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
                     }, err -> {
                         Log.e(TAG, "Failed to login to Google");
                         Toast.makeText(this, "Google sign-in failed!", Toast.LENGTH_SHORT).show();
@@ -113,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
             dialog.setMessage("Analyzing audio...");
             dialog.show();
 
-            Handler handler = new Handler();
-            handler.postDelayed(dialog::dismiss, 5000);
+            new Handler().postDelayed(dialog::dismiss, 3000);
+
             startButton.animate().setStartDelay(200).alpha(0).withEndAction(() -> {
                 startButton.setText("End");
                 startButton.animate().alpha(1);

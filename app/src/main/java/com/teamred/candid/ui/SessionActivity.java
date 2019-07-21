@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,12 +32,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Set;
 
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -77,6 +75,7 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
 
         if (files.length > 0) {
             ProgressDialog dialog = new ProgressDialog(this);
+            dialog.setMessage("Analyzing photos...");
             Session session = new Session(sessionDirectory);
             SessionProcessor processor = new SessionProcessor(session);
             dispose = processor.groupByEmotion()
@@ -87,17 +86,10 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                     .doOnError(e -> dialog.dismiss())
                     .subscribe(this::setupRecyclerView, Throwable::printStackTrace);
 
-            String[] dialogMsg = {"Analyzing emotions...", "Grouping photos...", "Polishing photos..."};
-            AtomicInteger atomicInteger = new AtomicInteger();
-            dialog.setMessage("Analyzing audio...");
-            Observable.interval(2, TimeUnit.SECONDS)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(i -> {
-                        if (i == dialogMsg.length) {
-                            atomicInteger.set(0);
-                        }
-                        dialog.setMessage(dialogMsg[atomicInteger.getAndIncrement()]);
-                    });
+            Handler handler = new Handler();
+            handler.postDelayed(() -> dialog.setMessage("Analyzing audio..."), 3000);
+            handler.postDelayed(() -> dialog.setMessage("Classifying emotions..."), 6000);
+            handler.postDelayed(() -> dialog.setMessage("Grouping photos..."), 9000);
             classificationStore = new EmotionClassificationStore(session);
         } else {
             // show default empty session view
