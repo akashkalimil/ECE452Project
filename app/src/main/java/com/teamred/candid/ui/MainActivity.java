@@ -156,6 +156,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void endSession() {
         // Open new activity with collection of photos from this session
+        if (dispose != null && !dispose.isDisposed()) {
+            dispose.dispose();
+        }
         Session session = sessionManager.end();
         photoCountTextView.setText("");
         startActivity(SessionActivity.newIntent(this, session.getDirectory()));
