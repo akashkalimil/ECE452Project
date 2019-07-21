@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
                         sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
                     }, err -> {
                         Log.e(TAG, "Failed to login to Google");
+                        err.printStackTrace();
                         Toast.makeText(this, "Google sign-in failed!", Toast.LENGTH_SHORT).show();
                     });
         }
