@@ -39,7 +39,6 @@ public class SessionManager {
     /**
      * Creates a new SessionManager instance.
      *
-     * @param fileDirectory The file system location where session contents will be persisted.
      */
     public SessionManager(UserManager userManager) {
         this.root = userManager.getCurrentUserDirectory();
@@ -61,16 +60,13 @@ public class SessionManager {
         sessionDirectory.mkdir();
 
         Observable<File> files = camera.sample(samplePeriod, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.newThread())
-                .flatMapSingle(this::savePhoto)
-                .subscribeOn(Schedulers.io());
+                .flatMapSingle(this::savePhoto);
 
         Observable<File> loudFiles = camera.sample(audioPeaks)
-                .subscribeOn(Schedulers.newThread())
-                .flatMapSingle(this::saveLoudPhoto)
-                .subscribeOn(Schedulers.io());
+                .flatMapSingle(this::saveLoudPhoto);
 
-        return Observable.merge(files, loudFiles);
+        return Observable.merge(files, loudFiles)
+                .subscribeOn(Schedulers.io());
     }
 
     public Session end() {

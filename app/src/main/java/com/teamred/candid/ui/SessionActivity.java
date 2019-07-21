@@ -77,11 +77,12 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
 
         if (files.length > 0) {
             ProgressDialog dialog = new ProgressDialog(this);
+            dialog.setCancelable(false);
             dialog.setMessage("Analyzing photos...");
             Session session = new Session(sessionDirectory);
             SessionProcessor processor = new SessionProcessor(session);
             dispose = processor.groupByEmotion()
-                    .subscribeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.computation())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnSubscribe(d -> dialog.show())
                     .doOnSuccess(g -> dialog.dismiss())

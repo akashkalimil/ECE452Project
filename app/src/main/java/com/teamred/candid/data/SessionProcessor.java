@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
 public class SessionProcessor {
 
@@ -40,9 +41,10 @@ public class SessionProcessor {
     }
 
     public Single<? extends Map<Emotion, List<String>>> groupByEmotion() {
-        return classificationStore.classificationFileExists()
+        return (classificationStore.classificationFileExists()
                 ? classificationStore.read()
-                : computeGroupings();
+                : computeGroupings()
+        ).subscribeOn(Schedulers.io());
     }
 
     private Single<Map<Emotion, List<String>>> computeGroupings() {
