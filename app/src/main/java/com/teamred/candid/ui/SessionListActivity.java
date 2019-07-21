@@ -37,7 +37,9 @@ public class SessionListActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
+        if (sessionManager == null) {
+            sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
+        }
     }
 
     @Override

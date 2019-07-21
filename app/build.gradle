@@ -1,9 +1,9 @@
 apply plugin: 'com.android.application'
 
-def getKey(String property){
+def getKey(String property) {
     Properties properties = new Properties()
     properties.load(new FileInputStream("/Users/priyesh/Documents/Candid/keys"))
-    return "\"" + properties.getProperty(property) +"\""
+    return "\"" + properties.getProperty(property) + "\""
 }
 
 android {

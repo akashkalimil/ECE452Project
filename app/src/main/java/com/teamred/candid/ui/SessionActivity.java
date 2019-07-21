@@ -49,11 +49,13 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
                 .putExtra(SESSION_DIR, sessionDirectory);
     }
 
+
     private static final String TAG = "ViewSession";
     private static final String SESSION_DIR = "sessionDir";
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy 'at' h:mm a", Locale.US);
 
+    private File sessionDirectory;
     private SessionAdapter adapter;
     private View menuContainer;
     private Disposable dispose;
@@ -65,9 +67,9 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_session);
 
-        File sessionDirectory = (File) getIntent().getSerializableExtra(SESSION_DIR);
+        sessionDirectory = (File) getIntent().getSerializableExtra(SESSION_DIR);
 
-        String title = getDisplayDate(sessionDirectory);
+        String title = getDisplayDate(sessionDirectory.getName());
         getSupportActionBar().setTitle(title);
 
         File[] files = sessionDirectory.listFiles();
@@ -160,9 +162,9 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         recyclerView.setAdapter(adapter);
     }
 
-    private static String getDisplayDate(File directory) {
+    static String getDisplayDate(String date) {
         try {
-            return DATE_FORMAT.format(SessionManager.DATE_FORMAT.parse(directory.getName()));
+            return DATE_FORMAT.format(SessionManager.DATE_FORMAT.parse(date));
         } catch (ParseException e) {
             return null;
         }
@@ -180,6 +182,15 @@ public class SessionActivity extends AppCompatActivity implements SessionAdapter
         menuContainer.animate()
                 .translationY(menuContainer.getHeight())
                 .setInterpolator(new DecelerateInterpolator());
+    }
+
+    @Override
+    public void onImageClicked(String imagePath) {
+        startActivity(SessionImageActivity.newIntent(
+                this,
+                new File(imagePath),
+                sessionDirectory.getName())
+        );
     }
 
     @Override

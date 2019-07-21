@@ -51,6 +51,8 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         void onSelectionModeEntered();
 
         void onSelectionModeExited();
+
+        void onImageClicked(String imagePath);
     }
 
     private final List<Object> data;
@@ -88,7 +90,7 @@ class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (!inSelectionMode) {
                 imageHolder.check.setVisibility(View.GONE);
                 setMargin(imageHolder.imageView, 0);
-                imageHolder.imageView.setOnClickListener(null);
+                imageHolder.imageView.setOnClickListener(v -> listener.onImageClicked(file));
             } else {
                 if (selectedIndices.contains(position)) { // selected
                     imageHolder.check.setVisibility(View.VISIBLE);
