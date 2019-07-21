@@ -52,7 +52,7 @@
             android:paddingTop="10dp"
             android:paddingRight="16dp"
             android:paddingBottom="10dp"
-            android:text="Upload to Google Drive"
+            android:text="Upload to Google Photos"
             android:textSize="20sp" />
 
         <TextView

@@ -41,10 +41,9 @@ public class SessionProcessor {
     }
 
     public Single<? extends Map<Emotion, List<String>>> groupByEmotion() {
-        return (classificationStore.classificationFileExists()
-                ? classificationStore.read()
-                : computeGroupings()
-        ).subscribeOn(Schedulers.io());
+        return classificationStore.classificationFileExists()
+                ? classificationStore.read().subscribeOn(Schedulers.io())
+                : computeGroupings().subscribeOn(Schedulers.io());
     }
 
     private Single<Map<Emotion, List<String>>> computeGroupings() {

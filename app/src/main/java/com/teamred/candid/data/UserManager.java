@@ -7,7 +7,7 @@ public class UserManager {
     private String userHash;
     private final File root;
 
-    static UserManager instance;
+    private static UserManager instance;
 
     public static UserManager getInstance(File root) {
         return instance == null ? instance = new UserManager(root) : instance;

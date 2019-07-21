@@ -1,5 +1,6 @@
 package com.teamred.candid.data;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
@@ -39,8 +40,8 @@ public class SessionManager {
     /**
      * Creates a new SessionManager instance.
      */
-    public SessionManager(UserManager userManager) {
-        this.root = userManager.getCurrentUserDirectory();
+    public SessionManager(Context context) {
+        this.root = UserManager.getInstance(context.getFilesDir()).getCurrentUserDirectory();
         this.pictureCount = new AtomicInteger();
         this.samplePeriod = CAMERA_SAMPLE_PERIOD;
     }

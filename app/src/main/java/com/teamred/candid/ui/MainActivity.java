@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     .subscribe(token -> {
                         Log.d(TAG, "Successfully signed into Google");
                         hideLoginOverlay();
-                        sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
+                        sessionManager = new SessionManager(this);
                     }, err -> {
                         Log.e(TAG, "Failed to login to Google");
                         err.printStackTrace();

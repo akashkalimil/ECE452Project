@@ -38,7 +38,7 @@ public class SessionListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         if (sessionManager == null) {
-            sessionManager = new SessionManager(UserManager.getInstance(getFilesDir()));
+            sessionManager = new SessionManager(this);
         }
     }
 
