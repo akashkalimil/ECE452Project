@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
-import io.reactivex.internal.functions.Functions;
 
 public class AudioProcessor {
 

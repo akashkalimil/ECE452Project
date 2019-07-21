@@ -38,7 +38,6 @@ public class SessionManager {
 
     /**
      * Creates a new SessionManager instance.
-     *
      */
     public SessionManager(UserManager userManager) {
         this.root = userManager.getCurrentUserDirectory();
@@ -62,7 +61,8 @@ public class SessionManager {
         Observable<File> files = camera.sample(samplePeriod, TimeUnit.SECONDS)
                 .flatMapSingle(this::savePhoto);
 
-        Observable<File> loudFiles = camera.sample(audioPeaks)
+        Observable<File> loudFiles = camera.sample(audioPeaks
+                .debounce(3, TimeUnit.SECONDS))
                 .flatMapSingle(this::saveLoudPhoto);
 
         return Observable.merge(files, loudFiles)

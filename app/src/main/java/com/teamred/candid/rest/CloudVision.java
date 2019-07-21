@@ -19,7 +19,7 @@ import retrofit2.http.Query;
 public class CloudVision extends RestApiClient<CloudVision.Service> {
 
     private static final String KEY = BuildConfig.CV_API_KEY;
-    private static final int IMAGES_PER_BATCH = 4;
+    private static final int IMAGES_PER_BATCH = 3;
 
     interface Service {
 
